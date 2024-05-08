@@ -1,0 +1,135 @@
+class Face
+{
+public:
+    glm::vec3 position;
+    glm::vec3 normal1;
+    glm::vec3 normal2;
+
+
+    std::vector<float> cornerPositions;
+
+    std::vector<unsigned int> indices = 
+    {
+        0, 1, 2, 2, 3, 0
+    };
+
+    Face(glm::vec3 position, glm::vec3 point1, glm::vec3 point2, glm::vec3 point3, glm::vec3 point4)
+    {
+        this->position = position;
+        //get the two normals
+        glm::vec3 v1 = glm::vec3(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);
+        glm::vec3 v2 = glm::vec3(point3.x - point2.x, point3.y - point2.y, point3.z - point2.z);
+        glm::vec3 normal = glm::cross(v1, v2);
+        normal1 = normal;
+        v1 = glm::vec3(point3.x - point2.x, point3.y - point2.y, point3.z - point2.z);
+        v2 = glm::vec3(point4.x - point3.x, point4.y - point3.y, point4.z - point3.z);
+        normal = glm::cross(v1, v2);
+        normal2 = normal;
+
+        cornerPositions.push_back(point1.x);
+        cornerPositions.push_back(point1.y);
+        cornerPositions.push_back(point1.z);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+
+        cornerPositions.push_back(point2.x);
+        cornerPositions.push_back(point2.y);
+        cornerPositions.push_back(point2.z);
+        cornerPositions.push_back(1.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+
+        cornerPositions.push_back(point3.x);
+        cornerPositions.push_back(point3.y);
+        cornerPositions.push_back(point3.z);
+        cornerPositions.push_back(1.0f);
+        cornerPositions.push_back(1.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+
+        cornerPositions.push_back(point4.x);
+        cornerPositions.push_back(point4.y);
+        cornerPositions.push_back(point4.z);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(1.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+        cornerPositions.push_back(0.0f);
+
+        
+    }
+};
+
+
+
+
+class Cube
+{
+public:
+    glm::vec3 position;
+    glm::vec3 rotation;
+    glm::vec3 scale;
+
+
+    std::vector<float> cornerPositions = 
+    {
+        //front face
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+         0.5f,  0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f,  0.5f, 0.5f, 0.0f, 1.0f,
+
+        //back face
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+
+        //top face
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
+         0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
+         0.5f, 0.5f,  0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f,  0.5f, 0.0f, 1.0f,
+
+        //bottom face
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f,
+
+        //right face
+         0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f, 0.0f, 1.0f,
+
+        //left face
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, 1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, 0.0f, 1.0f
+    };
+
+    std::vector<unsigned int> indices = 
+    { 
+        0, 1, 2, 2, 3, 0, //front face
+        4, 5, 6, 6, 7, 4, //back face
+        8, 9, 10, 10, 11, 8, //top face
+        12, 13, 14, 14, 15, 12, //bottom face
+        16, 17, 18, 18, 19, 16, //right face
+        20, 21, 22, 22, 23, 20 //left face
+    };
+
+    Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+    {
+        this->position = position;
+        this->rotation = rotation;
+        this->scale = scale;
+    }
+};
