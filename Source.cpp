@@ -295,9 +295,6 @@ void addNotification(std::string message, float time)
 
 bool needsRefresh = false;
 
-
-
-
 float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
 {
     // Calculate the closest point on the voxel to the point
@@ -360,10 +357,10 @@ int main()
             {
                 if (line[i] == '#')
                 {
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 3));
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 3));
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 3));
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 3));
+                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 3));
+                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 3));
+                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 3));
+                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 3));
                 }
                 if (line[i] == '1')
                 {
@@ -607,69 +604,16 @@ int main()
 
         }
 
-        voxelsCloseToPlayer.clear();
-        for (int i = 0; i < voxels.size(); i++)
-        {
-            float distance = glm::distance(camera.position, voxels[i].position);
-            if (distance < 10)
-            {
-                voxelsCloseToPlayer.push_back(&voxels[i]);
-            }
-        }
-        bool onGround = false;
-        bool p1Colliding = false;
-        bool p2Colliding = false;
-        bool p3Colliding = false;
-        bool p4Colliding = false;
-
-        camera.Update(window, dt, mouseControl);
-        camera.collider.setPosition(camera.positionFeet);
-
+        
         //get camera's view direction to see what block we are looking at
         Ray ray(camera.position + glm::vec3(0,1,0), camera.getViewDirection());
         
-        for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
-        {
-            //check if camera.positionFeet is inside the cube
-            // if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet))
-            // {
-            //     onGround = true;
-            //     camera.onGround = true;
-            //     camera.isJumping = false;
-            //     camera.positionFeet.y = voxelsCloseToPlayer[i]->position.y + voxelsCloseToPlayer[i]->scale.y;
-            //     //addNotification("Adjusting player position ", 0.5f);
-            //     camera.yVelocity = 0;
-            // }
-
-            //check if the camera's collider is colliding with the cube's collider
-            if (camera.collider.CheckCollision(voxelsCloseToPlayer[i]->collider))
-            {
-                addNotification("Colliding with a cube", 0.2f);
-                
-            }
-            if (ray.intersectsCube(voxelsCloseToPlayer[i]->position,2))
-            {
-                float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
-                if (distance < distToCube)
-                {
-                    distToCube = distance;
-                    cubeLookingAt = voxelsCloseToPlayer[i];
-                }
-            }
-        }
-
         
-
-        if (!onGround)
-        {
-            camera.onGround = false;
-        }
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             paused = true;
             mouseControl = true;
         }
-
 
 #pragma region MVP
         ImGui_ImplOpenGL3_NewFrame();
@@ -682,14 +626,92 @@ int main()
         renderer.Clear();
         GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 5000.0f);
+        glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 mvp = proj * view * model;
         shader.SetUniformMat4f("u_MVP", mvp);
         renderer.Draw(va, ib, shader);
 #pragma endregion MVP
+        voxelsCloseToPlayer.clear();
+        for (int i = 0; i < voxels.size(); i++)
+        {
+            float distance = glm::distance(camera.position, voxels[i].position);
+            if (distance < 10)
+            {
+                voxelsCloseToPlayer.push_back(&voxels[i]);
+            }
+        }
+        bool onGround = false;
 
+        camera.Update(window, dt, mouseControl);
+        camera.collider.setPosition(camera.position + glm::vec3(0,-4,0));
+
+        camera.isPointInBackColliding = false;
+        camera.isPointInFrontColliding = false;
+        camera.isPointInLeftColliding = false;
+        camera.isPointInRightColliding = false;
+
+        for (int j = 0; j < voxelsCloseToPlayer.size(); j++)
+        {
+            // //move the player back by the overlap amount
+            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInFront))
+            {
+                camera.isPointInFrontColliding = true;
+            }
+            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInBack))
+            {
+                camera.isPointInBackColliding = true;
+            }
+            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInLeft))
+            {
+                camera.isPointInLeftColliding = true;
+            }
+            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInRight))
+            {
+                camera.isPointInRightColliding = true;
+            }
+        }
+
+        for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
+        {
+            //check if the camera's collider is colliding with the cube's collider
+            if (camera.collider.CheckCollision(voxelsCloseToPlayer[i]->collider))
+            {
+                glm::vec3 buffer = glm::vec3{0,0,0} -= camera.collider.ResolveCollision(voxelsCloseToPlayer[i]->collider);
+                if (buffer.y != 0  && !camera.getOnGround())
+                {
+                
+                    onGround = true;
+                    camera.onGround = true;
+                    camera.isJumping = false;
+                    //addNotification("Adjusting player position ", 0.5f);
+                    camera.yVelocity = 0;
+                
+                }
+                camera.position += buffer;
+            }
+            if (ray.intersectsCube(voxelsCloseToPlayer[i]->position,2))
+            {
+                float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
+                if (distance < distToCube)
+                {
+                    distToCube = distance;
+                    cubeLookingAt = voxelsCloseToPlayer[i];
+                }
+            }
+
+            // //check if camera.positionFeet is inside the cube
+            if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet))
+            {
+                onGround = true;
+            }
+        }
+
+        if (!onGround)
+        {
+            camera.onGround = false;
+        }
 
         if (cubeLookingAt != nullptr)
         {
@@ -805,7 +827,6 @@ int main()
                 //if we are looking at a cube
                 if (cubeLookingAt != nullptr)
                 {
-                    
                     //remove the cube we are looking at
                     for (int i = 0; i < voxels.size(); i++)
                     {
@@ -817,8 +838,6 @@ int main()
                             break;
                         }
                     }
-                    
-                    
                 }
             }
             //if right click on mouse
@@ -833,7 +852,6 @@ int main()
                     needsRefresh = true;
                 }
             }
-
         }
 
         //draw notifications from the notification queue
@@ -841,7 +859,7 @@ int main()
         {
             ImGui::Begin("Notification", NULL, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::SetWindowPos(ImVec2(10, 10));
-            ImGui::Text(notifications[i]->message.c_str());
+            ImGui::Text("%s", notifications[i]->message.c_str());
             ImGui::End();
             notifications[i]->time -= dt;
             if (notifications[i]->time <= 0)

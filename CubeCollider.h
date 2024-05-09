@@ -33,6 +33,10 @@ public:
 
     const glm::vec3& getSize() const;
     void setSize(const glm::vec3& newSize);
+
+    const float& getOverlapX(const CubeCollider& other) const;
+    const float& getOverlapY(const CubeCollider& other) const;
+    const float& getOverlapZ(const CubeCollider& other) const;
 };
 
 #endif // CUBECOLLIDER_H

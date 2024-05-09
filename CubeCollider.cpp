@@ -5,25 +5,56 @@ CubeCollider::CubeCollider() : position(0, 3, 0), size(1, 1, 1)
 {
     topFace = 
     {
-        glm::vec3{position.x+1,position.y+1,position.z+1},
-        glm::vec3{position.x+1,position.y+1,position.z-1},
-        glm::vec3{position.x-1,position.y+1,position.z+1},
-        glm::vec3{position.x-1,position.y+1,position.z-1}
+        glm::vec3{position.x+size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x+size.x,position.y+size.y,position.z-size.z},
+        glm::vec3{position.x-size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y+size.y,position.z-size.z}
     };
 
     bottomFace = 
     {
-        glm::vec3{position.x+1,position.y-3,position.z+1},
-        glm::vec3{position.x+1,position.y-3,position.z-1},
-        glm::vec3{position.x-1,position.y-3,position.z+1},
-        glm::vec3{position.x-1,position.y-3,position.z-1}
+        glm::vec3{position.x+size.x,position.y-size.y,position.z+size.z},
+        glm::vec3{position.x+size.x,position.y-size.y,position.z-size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z-size.z}
     };
 
+    leftFace = 
+    {
+        glm::vec3{position.x-size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y+size.y,position.z-size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z-size.z}
+    };
+
+    rightFace = 
+    {
+        glm::vec3{position.x+size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x+size.x,position.y+size.y,position.z-size.z},
+        glm::vec3{position.x+size.x,position.y-size.y,position.z+size.z},
+        glm::vec3{position.x+size.x,position.y-size.y,position.z-size.z}
+    };
+
+    frontFace = 
+    {
+        glm::vec3{position.x+size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x+size.x,position.y-size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y+size.y,position.z+size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z+size.z}
+    };
+
+    backFace = 
+    {
+        glm::vec3{position.x+size.x,position.y+size.y,position.z-size.z},
+        glm::vec3{position.x+size.x,position.y-size.y,position.z-size.z},
+        glm::vec3{position.x-size.x,position.y+size.y,position.z-size.z},
+        glm::vec3{position.x-size.x,position.y-size.y,position.z-size.z}
+    };
     
 
 
 
-}
+};
 
 bool CubeCollider::CheckCollision(const CubeCollider& other) const {
     // Calculate min and max points for both colliders
@@ -66,6 +97,33 @@ glm::vec3 CubeCollider::ResolveCollision(const CubeCollider& other) {
 
     // Move the collider out of collision
     return mtv;
+}
+
+const float& CubeCollider::getOverlapX(const CubeCollider& other) const {
+    glm::vec3 minA = position - size / 2.0f;
+    glm::vec3 maxA = position + size / 2.0f;
+    glm::vec3 minB = other.position - other.size / 2.0f;
+    glm::vec3 maxB = other.position + other.size / 2.0f;
+
+    return std::min(maxA.x - minB.x, maxB.x - minA.x);
+}
+
+const float& CubeCollider::getOverlapY(const CubeCollider& other) const {
+    glm::vec3 minA = position - size / 2.0f;
+    glm::vec3 maxA = position + size / 2.0f;
+    glm::vec3 minB = other.position - other.size / 2.0f;
+    glm::vec3 maxB = other.position + other.size / 2.0f;
+
+    return std::min(maxA.y - minB.y, maxB.y - minA.y);
+}
+
+const float& CubeCollider::getOverlapZ(const CubeCollider& other) const {
+    glm::vec3 minA = position - size / 2.0f;
+    glm::vec3 maxA = position + size / 2.0f;
+    glm::vec3 minB = other.position - other.size / 2.0f;
+    glm::vec3 maxB = other.position + other.size / 2.0f;
+
+    return std::min(maxA.z - minB.z, maxB.z - minA.z);
 }
 
 const glm::vec3& CubeCollider::getPosition() const {

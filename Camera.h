@@ -14,14 +14,14 @@ public:
     float pitch = 0.0f;  // Starting pitch angle
     float roll = 0.0f;   // Starting roll angle
     glm::vec3 positionFeet = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 colliderPointTopBackLeft;
-    glm::vec3 colliderPointTopBackRight;
-    glm::vec3 colliderPointTopFrontLeft;
-    glm::vec3 colliderPointTopFrontRight;
-    glm::vec3 colliderPointBottomBackLeft;
-    glm::vec3 colliderPointBottomBackRight;
-    glm::vec3 colliderPointBottomFrontLeft;
-    glm::vec3 colliderPointBottomFrontRight;  
+    glm::vec3 pointInFront;
+    glm::vec3 pointInBack;
+    glm::vec3 pointInLeft;
+    glm::vec3 pointInRight;
+    bool isPointInFrontColliding = false;
+    bool isPointInBackColliding = false;
+    bool isPointInLeftColliding = false;
+    bool isPointInRightColliding = false;
     float yVelocity = 0.0f;
     bool onGround = false;
     bool isJumping = false;
@@ -97,14 +97,16 @@ public:
         const unsigned char* buttons;
         const float* thumbstickAxes;
         int amountOfJoysticksConnected = 0;
-        float cameraSpeed = .1f;
+        float cameraSpeed = .04f;
         float rotationSpeed = .1f;
 
-        positionFeet = glm::vec3(position.x, position.y-3, position.z);
+        positionFeet = glm::vec3(position.x, position.y-5, position.z);
 
-        //collider.setPosition(position);
-
-
+        //all points are relative to view direction
+        pointInFront = position + getViewDirection();
+        pointInBack = position - getViewDirection();
+        pointInLeft = position + glm::normalize(glm::cross(getViewDirection(), worldUp));
+        pointInRight = position - glm::normalize(glm::cross(getViewDirection(), worldUp));
 
         for (int i = 0; i < 5; i++)
         {
@@ -147,18 +149,10 @@ public:
                 isMouseActive = false;
                 cooldown = 20;
             }
-
         }
-        
-
-
-
-
 
         if (cooldown > 0)
             cooldown--;
-
-        
 
         //if tab is pressed, toggle isMouseActive
         if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && cooldown == 0)
@@ -197,8 +191,6 @@ public:
             glfwSetCursorPos(window, width / 2, height / 2);
             float xoffset = xpos - width / 2;
             float yoffset = height / 2 - ypos;
-
-            
 
             rotate(xoffset * rotationSpeed, yoffset * rotationSpeed);
 
@@ -243,19 +235,16 @@ public:
                 position += movement;
             }
 
-
             if (buttons[0] == GLFW_PRESS)
             {
                 if (onGround)
                 {
-                    yVelocity = .1f;
+                    yVelocity = .2f;
                     onGround = false;
                     isJumping = true;
                 }
 
             }
-
-            
 
             if (buttons[1] == GLFW_PRESS)
             {
@@ -271,50 +260,42 @@ public:
 
         }
 
-
-
-
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && !isPointInFrontColliding) {
             glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
             movement.y = 0;
-            position += movement;
+            velocity += movement;
         }
 
-
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS && !isPointInBackColliding) {
             glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
             movement.y = 0;
-            position -= movement;
+            velocity -= movement;
         }
 
-
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && !isPointInLeftColliding)
         {    
             glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
             movement.y = 0;
-            position -= movement;
+            velocity -= movement;
         }
 
-
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && !isPointInRightColliding)
         {
             glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
             movement.y = 0;
-            position += movement;
+            velocity += movement;
         }
-
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             if (onGround)
             {
-                yVelocity = .1f;
+                yVelocity = .2f;
                 onGround = false;
                 isJumping = true;
             }
         }
-        //position.y += yVelocity;
+
         if (!onGround)
         {
             position.y += yVelocity;
@@ -325,6 +306,9 @@ public:
             yVelocity -= 0.005f;
 
         }
+
+        velocity *= 0.9f;
+        position += velocity;
 
         // if (p1Colliding || p2Colliding)
         // {
