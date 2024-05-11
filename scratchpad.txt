@@ -74,7 +74,11 @@ public:
         // Clamp pitch to avoid looking too far up or down
         pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
-        
+        target = position + glm::vec3(
+            cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+            sin(glm::radians(pitch)),
+            sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+        );
     }
 
     glm::vec3 getRay()
@@ -322,31 +326,25 @@ public:
             velocity += movement;
         }
 
-        if (isPointInLeftColliding && moveLeft)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
-            movement.y = 0;
-            velocity += movement;
+        glm::vec3 viewDirection = glm::normalize(target - position);
+        glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
+
+        // Project movement onto plane perpendicular to viewDirection
+        movement = movement - glm::dot(movement, viewDirection) * viewDirection;
+
+        if (isPointInLeftColliding && moveLeft) {
+            velocity = movement;
         }
 
-        if (isPointInRightColliding && moveRight)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
-            movement.y = 0;
-            velocity -= movement;
+        if (isPointInRightColliding && moveRight) {
+            velocity = -movement;
         }
+
+
 
 
         velocity *= 0.9f;
         position += velocity;
-
-        target = position + glm::vec3(
-            cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-            sin(glm::radians(pitch)),
-            sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-        );
 
         // if (p1Colliding || p2Colliding)
         // {
@@ -431,10 +429,10 @@ public:
         return glm::normalize(target - position);
     }
 
-    glm::vec3 target;
 
 private:
     
+    glm::vec3 target;
     glm::vec3 worldUp;
     float movementSpeed;
     float rotationSpeed;

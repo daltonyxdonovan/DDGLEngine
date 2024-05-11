@@ -632,7 +632,9 @@ int main()
         glm::mat4 mvp = proj * view * model;
         shader.SetUniformMat4f("u_MVP", mvp);
         renderer.Draw(va, ib, shader);
+
 #pragma endregion MVP
+
         voxelsCloseToPlayer.clear();
         for (int i = 0; i < voxels.size(); i++)
         {
@@ -654,7 +656,6 @@ int main()
 
         for (int j = 0; j < voxelsCloseToPlayer.size(); j++)
         {
-            // //move the player back by the overlap amount
             if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInFront))
             {
                 camera.isPointInFrontColliding = true;
@@ -678,16 +679,14 @@ int main()
             //check if the camera's collider is colliding with the cube's collider
             if (camera.collider.CheckCollision(voxelsCloseToPlayer[i]->collider))
             {
-                glm::vec3 buffer = glm::vec3{0,0,0} -= camera.collider.ResolveCollision(voxelsCloseToPlayer[i]->collider);
-                if (buffer.y != 0  && !camera.getOnGround())
+                glm::vec3 buffer = camera.collider.ResolveCollision(voxelsCloseToPlayer[i]->collider);
+                if (!camera.getOnGround())
                 {
                 
                     onGround = true;
                     camera.onGround = true;
                     camera.isJumping = false;
-                    //addNotification("Adjusting player position ", 0.5f);
                     camera.yVelocity = 0;
-                
                 }
                 camera.position += buffer;
             }
@@ -702,11 +701,18 @@ int main()
             }
 
             // //check if camera.positionFeet is inside the cube
-            if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet))
+            if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet + glm::vec3(0,-1,0)))
             {
                 onGround = true;
             }
         }
+
+        //MUST BE RIGHT AFTER COLLISION/CORRECTION VVVVVV
+        camera.target = camera.position + glm::vec3(
+            cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch)),
+            sin(glm::radians(camera.pitch)),
+            sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch))
+        );
 
         if (!onGround)
         {
