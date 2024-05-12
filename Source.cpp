@@ -27,10 +27,17 @@
 #include <thread>
 #include "CubeCollider.h"
 
+
+
+
 Camera camera;
 int width = 1920;
 int height = 1080;
 bool mouseControl = false;
+
+
+
+
 
 
 class Cube
@@ -65,6 +72,7 @@ public:
         collider.setPosition(position);
         collider.setSize(scale);
         this->cornerPositions = 
+        this->cornerPositions = 
         {
             //front face
             -1, -1, 1, 0.0f, 0.0f, 0,
@@ -73,10 +81,10 @@ public:
             -1,  1, 1, 0.0f, 1.0f, 0,
 
             //back face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            1, -1, -1, 1.0f, 0.0f, 0,
-            1,  1, -1, 1.0f, 1.0f, 0,
-            -1,  1, -1, 0.0f, 1.0f, 0,
+            -1, -1, -1, 1.0f, 1.0f, 0,
+            1, -1, -1, 0.0f, 1.0f, 0,
+            1,  1, -1, 0.0f, 0.0f, 0,
+            -1,  1, -1, 1.0f, 0.0f, 0,
 
             //top face
             -1, 1, -1, 0.0f, 0.0f, 0,
@@ -85,23 +93,27 @@ public:
             -1, 1,  1, 0.0f, 1.0f, 0,
 
             //bottom face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            1, -1, -1, 1.0f, 0.0f, 0,
-            1, -1,  1, 1.0f, 1.0f, 0,
-            -1, -1,  1, 0.0f, 1.0f, 0,
+            -1, -1, -1, 0.0f, 1.0f, 0,
+            1, -1, -1, 1.0f, 1.0f, 0,
+            1, -1,  1, 1.0f, 0.0f, 0,
+            -1, -1,  1, 0.0f, 0.0f, 0,
 
             //right face
             1, -1, -1, 0.0f, 0.0f, 0,
             1,  1, -1, 1.0f, 0.0f, 0,
-            1,  1,  1, 1.0f, 1.0f, 0,
-            1, -1,  1, 0.0f, 1.0f, 0,
+            1,  1,  1, 1.0f, -2.0f, 0,
+            1, -1,  1, 0.0f, -2.0f, 0,
 
             //left face
             -1, -1, -1, 0.0f, 0.0f, 0,
             -1,  1, -1, 1.0f, 0.0f, 0,
-            -1,  1,  1, 1.0f, 1.0f, 0,
-            -1, -1,  1, 0.0f, 1.0f, 0
-        };
+            -1,  1,  1, 1.0f, -2.0f, 0,
+            -1, -1,  1, 0.0f, -2.0f, 0
+        }; 
+
+ 
+
+
 
         vertices = {
             glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
@@ -214,15 +226,15 @@ public:
 
             //right face
             1, -1, -1, 0.0f, 0.0f, textureID,
-            1,  1, -1, 1.0f, 0.0f, textureID,
+            1,  1, -1, 0.0f, 1.0f, textureID,
             1,  1,  1, 1.0f, 1.0f, textureID,
-            1, -1,  1, 0.0f, 1.0f, textureID,
+            1, -1,  1, 1.0f, 0.0f, textureID,
 
             //left face
             -1, -1, -1, 0.0f, 0.0f, textureID,
-            -1,  1, -1, 1.0f, 0.0f, textureID,
+            -1,  1, -1, 0.0f, 1.0f, textureID,
             -1,  1,  1, 1.0f, 1.0f, textureID,
-            -1, -1,  1, 0.0f, 1.0f, textureID
+            -1, -1,  1, 1.0f, 0.0f, textureID
         };
 
         vertices = {
@@ -292,7 +304,6 @@ void addNotification(std::string message, float time)
     notifications.push_back(notification);
 }
 
-
 bool needsRefresh = false;
 
 float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
@@ -309,11 +320,17 @@ float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
     return penetrationDepth;
 }
 
+
+
+
+
+
+
 int main() 
 {
 
 #pragma region INITIALIZATION
-    std::cout << "setting up noise values..." << std::endl;
+    std::cout << "Setting up noise values!" << std::endl;
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     noise.SetFractalType(FastNoiseLite::FractalType_FBm);
@@ -323,15 +340,12 @@ int main()
     noise.SetFrequency(0.06f);
     noise.SetSeed(rand());
 
-    
-
-
+    std::cout << "Building map from map.txt..." << std::endl;
     std::vector<Cube> voxels;
 
     //open map.txt and read the map
     std::ifstream file("map.txt");
     std::string line;
-
     if (file.is_open())
     {
         int mapHeight = 0;
@@ -355,26 +369,42 @@ int main()
         {
             for (int i = 0; i < line.size(); i++)
             {
-                if (line[i] == '#')
-                {
-                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 3));
-                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 3));
-                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 3));
-                    //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 3));
-                }
                 if (line[i] == '1')
                 {
-                    
+                    //wall
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 6, startingPosZ + zOffset), 1));
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 4, startingPosZ + zOffset), 1));
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 1));
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 1));
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 1));
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 1));
                 }
                 if (line[i] == '2')
                 {
-                    
+                    //box
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
+                }
+                if (line[i] == '3')
+                {
+                    //box (2 tall)
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 2));
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
                 }
-                voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
-                //voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 4, startingPosZ + zOffset), 0));
+                if (line[i] == '4')
+                {
+                    //floor
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
+                }
+                if (line[i] == '5')
+                {
+                    //floor
+                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
+                    camera.lastPosition = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
+                    camera.position = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
+                }
+                
+
+                voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 8, startingPosZ + zOffset), 0));
 
                 xOffset++;
                 xOffset++;
@@ -387,11 +417,11 @@ int main()
     }
     else
     {
-        std::cout << "Failed to open file" << std::endl;
+        std::cout << "FAILED to open map.txt" << std::endl;
     }
     
 
-
+    std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
 
     
     const unsigned int AMOUNT_OF_INDICES = voxels[0].indices.size();
@@ -431,17 +461,17 @@ int main()
 
     if (!glfwInit()) 
     {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "FAILED to initialize GLFW\n";
         return -1;
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Engine", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "DDGL", NULL, NULL);
     if (!window) 
     {
-        std::cerr << "Failed to create window\n";
+        std::cerr << "FAILED to create window\n";
         glfwTerminate();
         return -1;
     }
@@ -450,7 +480,7 @@ int main()
     glfwGetFramebufferSize(window, &display_w, &display_h);
     if (glewInit() != GLEW_OK) 
     {
-        std::cerr << "Failed to initialize GLEW\n";
+        std::cerr << "FAILED to initialize GLEW\n";
     }
 
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -474,30 +504,22 @@ int main()
     va.AddBuffer(vb,layout);
     IndexBuffer ib(indicesAfter,indicesCount);
 
-
-
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 5000.0f);
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 mvp = proj * view * model;
 
-    
-
-    std::cout << "creating shaders..." << std::endl;
+    std::cout << "Voxels generated! Creating shaders..." << std::endl;
     Shader shader("res/shaders/Basic.shader");
 
-
     shader.Bind();
-    
     shader.SetUniformMat4f("u_MVP", mvp);
-    std::cout << "bound shaders successfully\n";
+    std::cout << "Bound shaders successfully! Binding textures to GPU...\n";
     
     Texture u_TextureBrick1("res/textures/brick.png");
     Texture u_TextureBrick2("res/textures/brick2.png");
     Texture u_TextureBrick3("res/textures/brick3.png");
     Texture u_TextureBrick4("res/textures/brick4.png");
-
-    std::cout << "binding textures to gpu..." << std::endl;
 
     u_TextureBrick1.Bind(0);
     u_TextureBrick2.Bind(1);
@@ -507,8 +529,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-
-    std::cout << "setting texture uniforms..." << std::endl;
+    std::cout << "Textures bound! Setting texture uniforms..." << std::endl;
 
     shader.SetUniform1i("u_TextureBrick1", 0);
     shader.SetUniform1i("u_TextureBrick2", 1);
@@ -520,11 +541,11 @@ int main()
     ib.Unbind();
     shader.Unbind();
 
-    std::cout << "creating renderer..." << std::endl;
+    std::cout << "Texture uniforms created! Creating RENDERER..." << std::endl;
 
     Renderer renderer;
 
-    std::cout << "initializing IMGUI" << std::endl;
+    std::cout << "RENDERER created! Initializing IMGUI..." << std::endl;
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -541,7 +562,7 @@ int main()
     bool paused = false;
     shader.Bind();
 
-    std::cout << "setup complete!" << std::endl;
+    std::cout << "SETUP complete!" << std::endl;
 
     std::vector<Cube*> voxelsCloseToPlayer;
     Cube* cubeLookingAt = nullptr;
@@ -604,10 +625,8 @@ int main()
 
         }
 
-        
         //get camera's view direction to see what block we are looking at
         Ray ray(camera.position + glm::vec3(0,1,0), camera.getViewDirection());
-        
         
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
@@ -617,11 +636,9 @@ int main()
 
 #pragma region MVP
         ImGui_ImplOpenGL3_NewFrame();
-
         currentFrame = glfwGetTime();
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
         glfwSwapInterval(1);
         renderer.Clear();
         GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
@@ -635,11 +652,13 @@ int main()
 
 #pragma endregion MVP
 
+#pragma region COLLISION
+
         voxelsCloseToPlayer.clear();
         for (int i = 0; i < voxels.size(); i++)
         {
             float distance = glm::distance(camera.position, voxels[i].position);
-            if (distance < 10)
+            if (distance < 15)
             {
                 voxelsCloseToPlayer.push_back(&voxels[i]);
             }
@@ -649,30 +668,10 @@ int main()
         camera.Update(window, dt, mouseControl);
         camera.collider.setPosition(camera.position + glm::vec3(0,-4,0));
 
-        camera.isPointInBackColliding = false;
-        camera.isPointInFrontColliding = false;
-        camera.isPointInLeftColliding = false;
-        camera.isPointInRightColliding = false;
-
-        for (int j = 0; j < voxelsCloseToPlayer.size(); j++)
-        {
-            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInFront))
-            {
-                camera.isPointInFrontColliding = true;
-            }
-            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInBack))
-            {
-                camera.isPointInBackColliding = true;
-            }
-            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInLeft))
-            {
-                camera.isPointInLeftColliding = true;
-            }
-            if (voxelsCloseToPlayer[j]->isPointInside(camera.pointInRight))
-            {
-                camera.isPointInRightColliding = true;
-            }
-        }
+        camera.pointXMinusColliding = false;
+        camera.pointXPlusColliding = false;
+        camera.pointZMinusColliding = false;
+        camera.pointZPlusColliding = false;
 
         for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
         {
@@ -682,14 +681,37 @@ int main()
                 glm::vec3 buffer = camera.collider.ResolveCollision(voxelsCloseToPlayer[i]->collider);
                 if (!camera.getOnGround())
                 {
-                
                     onGround = true;
                     camera.onGround = true;
                     camera.isJumping = false;
                     camera.yVelocity = 0;
                 }
+                buffer.x = 0;
+                buffer.z = 0;
                 camera.position += buffer;
             }
+
+            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointXPlus))
+            {
+                camera.pointXPlusColliding = true;
+            }
+            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointXMinus))
+            {
+                camera.pointXMinusColliding = true;
+            }
+            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointZPlus))
+            {
+                camera.pointZPlusColliding = true;
+            }
+            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointZMinus))
+            {
+                camera.pointZMinusColliding = true;
+            }
+
+            
+
+            
+
             if (ray.intersectsCube(voxelsCloseToPlayer[i]->position,2))
             {
                 float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
@@ -714,10 +736,45 @@ int main()
             sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch))
         );
 
+        float collisionCorrectionSpeed = 0;
+
+        if (camera.velocity.x != 0 || camera.velocity.z != 0)
+        {
+            if (std::abs(camera.velocity.x) > std::abs(camera.velocity.z))
+            {
+                collisionCorrectionSpeed = std::abs(camera.velocity.x);
+            }
+            else
+            {
+                collisionCorrectionSpeed = std::abs(camera.velocity.z);
+            }
+        }
+
+        if (camera.pointXMinusColliding)
+        {
+            camera.position.x += collisionCorrectionSpeed;
+            camera.target.x += collisionCorrectionSpeed;
+        }
+        if (camera.pointXPlusColliding)
+        {
+            camera.position.x -= collisionCorrectionSpeed;
+            camera.target.x -= collisionCorrectionSpeed;
+        }
+        if (camera.pointZMinusColliding)
+        {
+            camera.position.z += collisionCorrectionSpeed;
+            camera.target.z += collisionCorrectionSpeed;
+        }
+        if (camera.pointZPlusColliding)
+        {
+            camera.position.z -= collisionCorrectionSpeed;
+            camera.target.z -= collisionCorrectionSpeed;
+        }
         if (!onGround)
         {
             camera.onGround = false;
         }
+#pragma endregion COLLISION
 
         if (cubeLookingAt != nullptr)
         {
@@ -738,7 +795,6 @@ int main()
                 }
             }
         }
-
 
 #pragma region IMGUI
 
@@ -781,12 +837,12 @@ int main()
         ImGui::Begin("CUBES", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("voxels: %lu", voxels.size());
         ImGui::Text("Indices: %d", indicesCount);
-        ImGui::Text("Triangles: %lu", voxels.size()*2);
+        ImGui::Text("Triangles: %lu", voxels.size()*12);
         ImGui::End();
         
         if (camera.position.y < -10)
         {
-            camera.position = glm::vec3(0, 3.0f, 0);
+            camera.position = camera.lastPosition;
             camera.yVelocity = 0;
         }
 
@@ -825,40 +881,6 @@ int main()
 
             ImGui::End();
         }
-        else
-        {
-            //if left click on mouse
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-            {
-                //if we are looking at a cube
-                if (cubeLookingAt != nullptr)
-                {
-                    //remove the cube we are looking at
-                    for (int i = 0; i < voxels.size(); i++)
-                    {
-                        if (voxels[i].position == cubeLookingAt->position)
-                        {
-                            voxels.erase(voxels.begin() + i);
-                            needsRefresh = true;
-                            cubeLookingAt = nullptr;
-                            break;
-                        }
-                    }
-                }
-            }
-            //if right click on mouse
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-            {
-                //if we are looking at a cube
-                if (cubeLookingAt != nullptr)
-                {
-                    //add a cube in front of the cube we are looking at
-                    glm::vec3 newCubePosition = cubeLookingAt->position + camera.getRay() * 2.0f;
-                    voxels.push_back(Cube(newCubePosition));
-                    needsRefresh = true;
-                }
-            }
-        }
 
         //draw notifications from the notification queue
         for (int i = 0; i < notifications.size(); i++)
@@ -873,6 +895,21 @@ int main()
                 notifications.erase(notifications.begin() + i);
             }
         }
+        
+        ImGui::Begin("COLLISION", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Camera PointXPlusColliding: %s", camera.pointXPlusColliding ? "True" : "False");
+        ImGui::Text("Camera PointXMinusColliding: %s", camera.pointXMinusColliding ? "True" : "False");
+        ImGui::Text("Camera PointZPlusColliding: %s", camera.pointZPlusColliding ? "True" : "False");
+        ImGui::Text("Camera PointZMinusColliding: %s", camera.pointZMinusColliding ? "True" : "False");
+        //their positions
+        ImGui::Spacing();
+        ImGui::Text("Camera PointXPlus: (%f, %f, %f)", camera.pointXPlus.x, camera.pointXPlus.y, camera.pointXPlus.z);
+        ImGui::Text("Camera PointXMinus: (%f, %f, %f)", camera.pointXMinus.x, camera.pointXMinus.y, camera.pointXMinus.z);
+        ImGui::Text("Camera PointZPlus: (%f, %f, %f)", camera.pointZPlus.x, camera.pointZPlus.y, camera.pointZPlus.z);
+        ImGui::Text("Camera PointZMinus: (%f, %f, %f)", camera.pointZMinus.x, camera.pointZMinus.y, camera.pointZMinus.z);
+        ImGui::End();
+        
+        
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -9,25 +9,25 @@ public:
     glm::mat4 proj;
     int cooldown = 0;
     glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f);
+    glm::vec3 lastPosition = glm::vec3(0.0f, 3.0f, 0.0f); //this is used for checkpoints
     glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
     float yaw = -90.0f; // Starting yaw angle
     float pitch = 0.0f;  // Starting pitch angle
     float roll = 0.0f;   // Starting roll angle
     glm::vec3 positionFeet = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 pointInFront;
-    glm::vec3 pointInBack;
-    glm::vec3 pointInLeft;
-    glm::vec3 pointInRight;
-    bool isPointInFrontColliding = false;
-    bool isPointInBackColliding = false;
-    bool isPointInLeftColliding = false;
-    bool isPointInRightColliding = false;
+    glm::vec3 pointXPlus = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 pointXMinus = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 pointZPlus = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 pointZMinus = glm::vec3(0.0f, 0.0f, 0.0f);
+    bool pointXPlusColliding = false;
+    bool pointXMinusColliding = false;
+    bool pointZPlusColliding = false;
+    bool pointZMinusColliding = false;
     float yVelocity = 0.0f;
     bool onGround = false;
     bool isJumping = false;
-
     CubeCollider collider;
-
+    bool isRunning = false;
 
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f),
@@ -90,6 +90,9 @@ public:
         bool moveLeft = false;
         bool moveRight = false;
 
+
+        
+
         glfwPollEvents();
         int count;
         int properControllerIndex = -1; 
@@ -100,13 +103,13 @@ public:
         float cameraSpeed = .04f;
         float rotationSpeed = .1f;
 
-        positionFeet = glm::vec3(position.x, position.y-4, position.z);
+        
 
-        //all points are relative to view direction
-        pointInFront = position + getViewDirection();
-        pointInBack = position - getViewDirection();
-        pointInLeft = position + glm::normalize(glm::cross(getViewDirection(), worldUp));
-        pointInRight = position - glm::normalize(glm::cross(getViewDirection(), worldUp));
+        positionFeet = glm::vec3(position.x, position.y-4, position.z);
+        pointXPlus = glm::vec3(position.x+.75f, position.y-2.5f, position.z);
+        pointXMinus = glm::vec3(position.x-.75f, position.y-2.5f, position.z);
+        pointZPlus = glm::vec3(position.x, position.y-2.5f, position.z+.75f);
+        pointZMinus = glm::vec3(position.x, position.y-2.5f, position.z-.75f);
 
         for (int i = 0; i < 5; i++)
         {
@@ -151,6 +154,23 @@ public:
             }
         }
 
+        //if leftShift is pressed, run
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        {
+            isRunning = true;
+            cameraSpeed = .04f;
+        }
+        else if (buttons[6] == GLFW_PRESS || buttons[7] == GLFW_PRESS)
+        {
+            isRunning = true;
+            cameraSpeed = .04f;
+        }
+        else
+        {
+            isRunning = false;
+            cameraSpeed = .02f;
+        }
+
         if (cooldown > 0)
             cooldown--;
 
@@ -163,6 +183,7 @@ public:
     
         if (isMouseActive)
         {
+            //in the pause menu
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             return;
 
@@ -183,6 +204,7 @@ public:
         }
         else
         {
+            //actually in the game
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             double xpos, ypos;
             glfwGetCursorPos(window, &xpos, &ypos);
@@ -198,10 +220,10 @@ public:
             {
                 float xoffsetController = 0;
                 if (thumbstickAxes[2] > 0.1 || thumbstickAxes[2] < -0.1)
-                    xoffsetController = thumbstickAxes[2] * 8;
+                    xoffsetController = thumbstickAxes[2] * 16;
                 float yoffsetController = 0;
                 if (thumbstickAxes[3] > 0.1 || thumbstickAxes[3] < -0.1)
-                    yoffsetController = -thumbstickAxes[3] * 8;
+                    yoffsetController = -thumbstickAxes[3] * 16;
 
                 rotate(xoffsetController * rotationSpeed, yoffsetController * rotationSpeed);
             }
@@ -212,27 +234,31 @@ public:
             if ( axes[0] == 1 || thumbstickAxes[1] < -0.5) {
                 glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
                 movement.y = 0;
-                position += movement;
+                velocity += movement;
+                moveForward = true;
             }
 
             if (axes[0] == 4 || thumbstickAxes[1] > 0.5) {
                 glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
                 movement.y = 0;
-                position -= movement;
+                velocity -= movement;
+                moveBackward = true;
             }
 
             if (axes[0] == 8 || thumbstickAxes[0] < -0.5)
             {    
                 glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
                 movement.y = 0;
-                position -= movement;
+                velocity -= movement;
+                moveLeft = true;
             }
 
             if (axes[0] == 2 || thumbstickAxes[0] > 0.5)
             {
                 glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
                 movement.y = 0;
-                position += movement;
+                velocity += movement;
+                moveRight = true;
             }
 
             if (buttons[0] == GLFW_PRESS)
@@ -260,21 +286,21 @@ public:
 
         }
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && !isPointInFrontColliding) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
             movement.y = 0;
             velocity += movement;
             moveForward = true;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS && !isPointInBackColliding) {
+        if (glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS) {
             glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
             movement.y = 0;
             velocity -= movement;
             moveBackward = true;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && !isPointInLeftColliding)
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {    
             glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
             movement.y = 0;
@@ -282,7 +308,7 @@ public:
             moveLeft = true;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && !isPointInRightColliding)
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
             movement.y = 0;
@@ -303,39 +329,7 @@ public:
         if (!onGround)
         {
             position.y += yVelocity;
-            yVelocity -= 0.005f;
-        }
-
-        if (isPointInFrontColliding && moveForward)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
-            movement.y = 0;
-            velocity -= movement;
-        }
-
-        if (isPointInBackColliding && moveBackward)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
-            movement.y = 0;
-            velocity += movement;
-        }
-
-        if (isPointInLeftColliding && moveLeft)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
-            movement.y = 0;
-            velocity += movement;
-        }
-
-        if (isPointInRightColliding && moveRight)
-        {
-            //make sure velocity can't move in viewDirection
-            glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
-            movement.y = 0;
-            velocity -= movement;
+            yVelocity -= 0.01f;
         }
 
 

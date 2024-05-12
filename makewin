@@ -1,6 +1,14 @@
 #!/bin/bash
 
-g++ -o DDGL \
+# Set the path to MinGW bin directory
+export PATH=/usr/bin/x86_64-w64-mingw32:$PATH
+
+# Set the path to MinGW include directory
+MINGW_INCLUDE_PATH=/usr/x86_64-w64-mingw32/include
+
+# Compile for Windows
+x86_64-w64-mingw32-g++ -o engine.exe \
+    -I$MINGW_INCLUDE_PATH \
     Source.cpp \
     Renderer.cpp \
     VertexBuffer.cpp \
@@ -18,4 +26,4 @@ g++ -o DDGL \
     CubeCollider.cpp \
     imgui_impl_opengl3.cpp \
     imgui_stdlib.cpp \
-    -lGLEW -lglfw -lGL -lX11 -lpthread -lXrandr
+    -lglew32 -lglfw3 -lopengl32 -lgdi32 -luser32 -lkernel32 -lmingw32
