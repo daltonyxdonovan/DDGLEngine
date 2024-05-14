@@ -13,6 +13,7 @@ public:
     void Bind() const;
     void Unbind() const;
     void UpdateBuffer(float data[], unsigned int size);
+    void SetPosition(int index, float x, float y, float z, int stride);
 
 };
 

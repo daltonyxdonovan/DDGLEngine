@@ -29,3 +29,8 @@ void VertexBuffer::UpdateBuffer(float data[], unsigned int size)
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));
     GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
 }
+
+void SetPosition(int index, float x, float y, float z, int stride)
+{
+    
+}

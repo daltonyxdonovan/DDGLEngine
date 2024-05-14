@@ -50,6 +50,7 @@ public:
     int textureIndex = 0;
     std::vector<glm::vec3> verticesAfterTransformation = {};
     CubeCollider collider;
+    int index = 0;
 
 
     std::vector<float> cornerPositions;
@@ -64,133 +65,7 @@ public:
         20, 21, 22, 22, 23, 20 //left face
     };
 
-    Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-    {
-        this->position = position;
-        this->rotation = rotation;
-        this->scale = scale;
-        collider.setPosition(position);
-        collider.setSize(scale);
-        this->cornerPositions = 
-        this->cornerPositions = 
-        {
-            //front face
-            -1, -1, 1, 0.0f, 0.0f, 0,
-            1, -1, 1, 1.0f, 0.0f, 0,
-            1,  1, 1, 1.0f, 1.0f, 0,
-            -1,  1, 1, 0.0f, 1.0f, 0,
-
-            //back face
-            -1, -1, -1, 1.0f, 1.0f, 0,
-            1, -1, -1, 0.0f, 1.0f, 0,
-            1,  1, -1, 0.0f, 0.0f, 0,
-            -1,  1, -1, 1.0f, 0.0f, 0,
-
-            //top face
-            -1, 1, -1, 0.0f, 0.0f, 0,
-            1, 1, -1, 1.0f, 0.0f, 0,
-            1, 1,  1, 1.0f, 1.0f, 0,
-            -1, 1,  1, 0.0f, 1.0f, 0,
-
-            //bottom face
-            -1, -1, -1, 0.0f, 1.0f, 0,
-            1, -1, -1, 1.0f, 1.0f, 0,
-            1, -1,  1, 1.0f, 0.0f, 0,
-            -1, -1,  1, 0.0f, 0.0f, 0,
-
-            //right face
-            1, -1, -1, 0.0f, 0.0f, 0,
-            1,  1, -1, 1.0f, 0.0f, 0,
-            1,  1,  1, 1.0f, -2.0f, 0,
-            1, -1,  1, 0.0f, -2.0f, 0,
-
-            //left face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            -1,  1, -1, 1.0f, 0.0f, 0,
-            -1,  1,  1, 1.0f, -2.0f, 0,
-            -1, -1,  1, 0.0f, -2.0f, 0
-        }; 
-
- 
-
-
-
-        vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), //1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), //2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), //3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), //4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), //5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), //6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z) //7
-
-
-
-        };
-    }
-
-    Cube(glm::vec3 position)
-    {
-        this->position = position;
-        this->rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-        this->scale = glm::vec3(2.0f, 2.0f, 2.0f);
-        collider.setPosition(position);
-        collider.setSize(scale);
-        this->cornerPositions = 
-        {
-            //front face
-            -1, -1, 1, 0.0f, 0.0f, 0,
-            1, -1, 1, 1.0f, 0.0f, 0,
-            1,  1, 1, 1.0f, 1.0f, 0,
-            -1,  1, 1, 0.0f, 1.0f, 0,
-
-            //back face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            1, -1, -1, 1.0f, 0.0f, 0,
-            1,  1, -1, 1.0f, 1.0f, 0,
-            -1,  1, -1, 0.0f, 1.0f, 0,
-
-            //top face
-            -1, 1, -1, 0.0f, 0.0f, 0,
-            1, 1, -1, 1.0f, 0.0f, 0,
-            1, 1,  1, 1.0f, 1.0f, 0,
-            -1, 1,  1, 0.0f, 1.0f, 0,
-
-            //bottom face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            1, -1, -1, 1.0f, 0.0f, 0,
-            1, -1,  1, 1.0f, 1.0f, 0,
-            -1, -1,  1, 0.0f, 1.0f, 0,
-
-            //right face
-            1, -1, -1, 0.0f, 0.0f, 0,
-            1,  1, -1, 1.0f, 0.0f, 0,
-            1,  1,  1, 1.0f, 1.0f, 0,
-            1, -1,  1, 0.0f, 1.0f, 0,
-
-            //left face
-            -1, -1, -1, 0.0f, 0.0f, 0,
-            -1,  1, -1, 1.0f, 0.0f, 0,
-            -1,  1,  1, 1.0f, 1.0f, 0,
-            -1, -1,  1, 0.0f, 1.0f, 0
-        };
-
-        vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), //1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), //2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), //3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), //4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), //5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), //6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z) //7
-
-
-
-        };
-    }
-
+    
     Cube(glm::vec3 position, float textureID)
     {
         this->position = position;glm::vec3();
@@ -200,42 +75,43 @@ public:
         collider.setSize(scale);
         this->cornerPositions = 
         {
-            //front face
-            -1, -1, 1, 0.0f, 0.0f, textureID,
-             1, -1, 1, 1.0f, 0.0f, textureID,
-             1,  1, 1, 1.0f, 1.0f, textureID,
-            -1,  1, 1, 0.0f, 1.0f, textureID,
+            // Front face
+            -1, -1,  1, 0.0f, 0.0f, textureID, 0, 0, 1,
+             1, -1,  1, 1.0f, 0.0f, textureID, 0, 0, 1,
+             1,  1,  1, 1.0f, 1.0f, textureID, 0, 0, 1,
+            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 0, 1,
 
-            //back face
-            -1, -1, -1, 0.0f, 0.0f, textureID,
-             1, -1, -1, 1.0f, 0.0f, textureID,
-             1,  1, -1, 1.0f, 1.0f, textureID,
-            -1,  1, -1, 0.0f, 1.0f, textureID,
+            // Back face <<<<<<<
+            -1, -1, -1, 0.0f, 0.0f, textureID, 0, 0, -1,
+             1, -1, -1, 1.0f, 0.0f, textureID, 0, 0, -1,
+             1,  1, -1, 1.0f, 1.0f, textureID, 0, 0, -1,
+            -1,  1, -1, 0.0f, 1.0f, textureID, 0, 0, -1,
 
-            //top face
-            -1, 1, -1, 0.0f, 0.0f, textureID,
-             1, 1, -1, 1.0f, 0.0f, textureID,
-             1, 1,  1, 1.0f, 1.0f, textureID,
-            -1, 1,  1, 0.0f, 1.0f, textureID,
+            // Top face
+            -1,  1, -1, 0.0f, 0.0f, textureID, 0, 1, 0,
+             1,  1, -1, 1.0f, 0.0f, textureID, 0, 1, 0,
+             1,  1,  1, 1.0f, 1.0f, textureID, 0, 1, 0,
+            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 1, 0,
 
-            //bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID,
-             1, -1, -1, 1.0f, 0.0f, textureID,
-             1, -1,  1, 1.0f, 1.0f, textureID,
-            -1, -1,  1, 0.0f, 1.0f, textureID,
+            // Bottom face
+            -1, -1, -1, 0.0f, 0.0f, textureID, 0, -1, 0,
+             1, -1, -1, 1.0f, 0.0f, textureID, 0, -1, 0,
+             1, -1,  1, 1.0f, 1.0f, textureID, 0, -1, 0,
+            -1, -1,  1, 0.0f, 1.0f, textureID, 0, -1, 0,
 
-            //right face
-            1, -1, -1, 0.0f, 0.0f, textureID,
-            1,  1, -1, 0.0f, 1.0f, textureID,
-            1,  1,  1, 1.0f, 1.0f, textureID,
-            1, -1,  1, 1.0f, 0.0f, textureID,
+            // Right face
+            1, -1, -1, 0.0f, 0.0f, textureID, 1, 0, 0,
+            1,  1, -1, 0.0f, 1.0f, textureID, 1, 0, 0,
+            1,  1,  1, 1.0f, 1.0f, textureID, 1, 0, 0,
+            1, -1,  1, 1.0f, 0.0f, textureID, 1, 0, 0,
 
-            //left face
-            -1, -1, -1, 0.0f, 0.0f, textureID,
-            -1,  1, -1, 0.0f, 1.0f, textureID,
-            -1,  1,  1, 1.0f, 1.0f, textureID,
-            -1, -1,  1, 1.0f, 0.0f, textureID
+            // Left face
+            -1, -1, -1, 0.0f, 0.0f, textureID, -1, 0, 0,
+            -1,  1, -1, 0.0f, 1.0f, textureID, -1, 0, 0,
+            -1,  1,  1, 1.0f, 1.0f, textureID, -1, 0, 0,
+            -1, -1,  1, 1.0f, 0.0f, textureID, -1, 0, 0
         };
+
 
         vertices = {
             glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
@@ -293,8 +169,9 @@ struct Notification
     float time;
 };
 
-const unsigned int STRIDE = 6;
+const unsigned int STRIDE = 9;
 std::vector<Notification*> notifications;
+int cooldownForBreak = 0;
 
 void addNotification(std::string message, float time)
 {
@@ -320,11 +197,126 @@ float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
     return penetrationDepth;
 }
 
+void SetPosition(float* positions, int index, glm::vec3 position, unsigned int amountOfValuesPerTri)
+{
+    // Front face
+    positions[index*amountOfValuesPerTri] = position.x - 1;
+    positions[index*amountOfValuesPerTri+1] = position.y - 1;
+    positions[index*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+1)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+1)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+1)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+2)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+2)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+2)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+3)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+3)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+3)*amountOfValuesPerTri+2] = position.z + 1;
+
+    // Back face
+    positions[(index+4)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+4)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+4)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+5)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+5)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+5)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+6)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+6)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+6)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+7)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+7)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+7)*amountOfValuesPerTri+2] = position.z - 1;
+
+    // Top face
+    positions[(index+8)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+8)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+8)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+9)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+9)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+9)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+10)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+10)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+10)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+11)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+11)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+11)*amountOfValuesPerTri+2] = position.z + 1;
+
+    // Bottom face
+    positions[(index+12)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+12)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+12)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+13)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+13)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+13)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+14)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+14)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+14)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+15)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+15)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+15)*amountOfValuesPerTri+2] = position.z + 1;
+
+    // Right face
+    positions[(index+16)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+16)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+16)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+17)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+17)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+17)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+18)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+18)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+18)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+19)*amountOfValuesPerTri] = position.x + 1;
+    positions[(index+19)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+19)*amountOfValuesPerTri+2] = position.z + 1;
+
+    // Left face
+    positions[(index+20)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+20)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+20)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+21)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+21)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+21)*amountOfValuesPerTri+2] = position.z - 1;
+
+    positions[(index+22)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+22)*amountOfValuesPerTri+1] = position.y + 1;
+    positions[(index+22)*amountOfValuesPerTri+2] = position.z + 1;
+
+    positions[(index+23)*amountOfValuesPerTri] = position.x - 1;
+    positions[(index+23)*amountOfValuesPerTri+1] = position.y - 1;
+    positions[(index+23)*amountOfValuesPerTri+2] = position.z + 1;
+}
 
 
+glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
+{
+    glm::vec3 direction = camera.target - camera.position;
+    direction.x = direction.x * distance;
+    direction.y = direction.y * distance;
+    direction.z = direction.z * distance;
 
+    direction.x += startingPosition.x;
+    direction.y += startingPosition.y;
+    direction.z += startingPosition.z;
+    return direction;
+}
 
-
+glm::vec3 sunPosition = glm::vec3(0,5,0);
 
 int main() 
 {
@@ -373,38 +365,50 @@ int main()
                 {
                     //wall
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 6, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 4, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 1));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                 }
                 if (line[i] == '2')
                 {
                     //box
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                 }
                 if (line[i] == '3')
                 {
                     //box (2 tall)
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 2));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                 }
                 if (line[i] == '4')
                 {
                     //floor
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                 }
                 if (line[i] == '5')
                 {
                     //floor
                     voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
                     camera.lastPosition = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
                     camera.position = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
                 }
                 
 
                 voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 8, startingPosZ + zOffset), 0));
+                    voxels[voxels.size()-1].index = voxels.size()-1;
 
                 xOffset++;
                 xOffset++;
@@ -419,6 +423,7 @@ int main()
     {
         std::cout << "FAILED to open map.txt" << std::endl;
     }
+
     
 
     std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
@@ -501,6 +506,7 @@ int main()
     layout.Push(GL_FLOAT, 3); //position
     layout.Push(GL_FLOAT, 2); //texture coordinates
     layout.Push(GL_FLOAT, 1); //textureID
+    layout.Push(GL_FLOAT, 3); //normal
     va.AddBuffer(vb,layout);
     IndexBuffer ib(indicesAfter,indicesCount);
 
@@ -570,9 +576,20 @@ int main()
     
     while (!glfwWindowShouldClose(window)) 
     {
+        //get direction vector from camera to camera.target
+        glm::vec3 direction = camera.target - camera.position;
+        direction.x = direction.x * 3;
+        direction.y = direction.y * 3;
+        direction.z = direction.z * 3;
+
+        SetPosition(positions, 0, sunPosition, STRIDE);
+        
         //lock to 60fps
         auto frameStart = std::chrono::steady_clock::now();
         float distToCube = 99999999;
+
+        //print the first three elements of the position array
+        //std::cout << positions[0] << " " << positions[1] << " " << positions[2] << std::endl;
 
         if (needsRefresh)
         {
@@ -585,6 +602,7 @@ int main()
                 {
                     indicesAfter [i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
                 }
+                voxels[i].index = i;
             }
 
             //this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number of indices in our cube)
@@ -621,18 +639,46 @@ int main()
             va.Bind();
             vb.Bind();
             ib.Bind();
-
-
         }
 
-        //get camera's view direction to see what block we are looking at
-        Ray ray(camera.position + glm::vec3(0,1,0), camera.getViewDirection());
+        //SetPosition(positions, 0, camera.target + direction, STRIDE);
+        vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
+        va.UpdateBuffer(vb, layout);
+
+        
         
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             paused = true;
             mouseControl = true;
         }
+
+        if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
+        {
+            sunPosition.z += 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
+        {
+            sunPosition.z -= 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
+        {
+            sunPosition.x += 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
+        {
+            sunPosition.x -= 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
+        {
+            sunPosition.y += 0.1f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS)
+        {
+            sunPosition.y -= 0.1f;
+        }
+
+
 
 #pragma region MVP
         ImGui_ImplOpenGL3_NewFrame();
@@ -648,6 +694,7 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 mvp = proj * view * model;
         shader.SetUniformMat4f("u_MVP", mvp);
+        shader.SetUniform3f("lightPos", sunPosition.x, sunPosition.y, sunPosition.z);
         renderer.Draw(va, ib, shader);
 
 #pragma endregion MVP
@@ -672,6 +719,17 @@ int main()
         camera.pointXPlusColliding = false;
         camera.pointZMinusColliding = false;
         camera.pointZPlusColliding = false;
+
+        std::vector<glm::vec3> pointsToCheck;
+
+        for (int j = 0; j < 6; j++)
+        {
+            glm::vec3 pointToCheck = CastPointForward((j+1)*2, camera.GetPosition());
+            pointsToCheck.push_back(pointToCheck);
+            
+        }
+
+        cubeLookingAt = nullptr;
 
         for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
         {
@@ -708,19 +766,21 @@ int main()
                 camera.pointZMinusColliding = true;
             }
 
-            
 
-            
-
-            if (ray.intersectsCube(voxelsCloseToPlayer[i]->position,2))
+            for (int j = 0; j < 6; j++)
             {
-                float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
-                if (distance < distToCube)
+                if (voxelsCloseToPlayer[i]->isPointInside(pointsToCheck[j]))
                 {
-                    distToCube = distance;
-                    cubeLookingAt = voxelsCloseToPlayer[i];
+                    float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
+                    if (distance < distToCube)
+                    {
+                        distToCube = distance;
+                        cubeLookingAt = voxelsCloseToPlayer[i];
+                    }
                 }
             }
+            
+            
 
             // //check if camera.positionFeet is inside the cube
             if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet + glm::vec3(0,-1,0)))
@@ -774,42 +834,30 @@ int main()
         {
             camera.onGround = false;
         }
+
 #pragma endregion COLLISION
 
-        if (cubeLookingAt != nullptr)
+        //if left mouse is pressed
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            cubeLookingAt->verticesAfterTransformation.clear();
-            cubeLookingAt->UpdateVertices();
-
-            for (int i = 0; i < cubeLookingAt->vertices.size(); i++)
+            cooldownForBreak++;
+            if (cooldownForBreak > 5)
             {
-                cubeLookingAt->verticesAfterTransformation.push_back(glm::vec3(mvp * glm::vec4(cubeLookingAt->vertices[i], 1.0f)));
-            }
-
-            for (int i = 0; i < cubeLookingAt->verticesAfterTransformation.size(); i++)
-            {
-                int nextIndex = i + 1;
-                if (nextIndex == cubeLookingAt->verticesAfterTransformation.size())
+                if (cubeLookingAt != nullptr)
                 {
-                    nextIndex = 0;
+                    voxels.erase(std::remove_if(voxels.begin(), voxels.end(), [cubeLookingAt](const Cube& voxel) {
+                        return &voxel == cubeLookingAt;
+                    }), voxels.end());
+                    needsRefresh = true;
                 }
+                cooldownForBreak = 0;
             }
         }
+
 
 #pragma region IMGUI
 
         ImGui::NewFrame();
-
-        if (cubeLookingAt != nullptr)
-        {
-            ImGui::Begin("Cube", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Cube Position: (%f, %f, %f)", cubeLookingAt->position.x, cubeLookingAt->position.y, cubeLookingAt->position.z);
-            ImGui::Text("Cube Scale: (%f, %f, %f)", cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-            ImGui::Text("Cube Texture: %d", cubeLookingAt->textureIndex);
-            ImGui::Text("Cube Collider: (%f, %f, %f)", cubeLookingAt->collider.position.x, cubeLookingAt->collider.position.y, cubeLookingAt->collider.position.z);
-            ImGui::Text("Cube Collider Size: (%f, %f, %f)", cubeLookingAt->collider.size.x, cubeLookingAt->collider.size.y, cubeLookingAt->collider.size.z);
-            ImGui::End();
-        }
 
         ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Camera Position: (%f, %f, %f)", camera.position.x, camera.position.y, camera.position.z);
@@ -822,23 +870,21 @@ int main()
         ImGui::Text("YVelocity: %f", camera.yVelocity);
         ImGui::End();
 
-        ImGui::Begin("VAO and IB", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("VAO: %d", vao);
-        ImGui::Text("IB: %d", ib.m_RendererID);
-        ImGui::Text("count: %d", ib.GetCount());
-        ImGui::Spacing();
-        ImGui::Spacing();
-        ImGui::Text("VBE");
-        ImGui::Text("Type: %d", layout.GetElements()[0].type);
-        ImGui::Text("Count: %d", layout.GetElements()[0].count);
-        ImGui::Text("Normalized: %d", layout.GetElements()[0].normalized);
-        ImGui::End();
-
-        ImGui::Begin("CUBES", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Begin(" ", NULL, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("voxels: %lu", voxels.size());
         ImGui::Text("Indices: %d", indicesCount);
         ImGui::Text("Triangles: %lu", voxels.size()*12);
         ImGui::End();
+
+        if (cubeLookingAt != nullptr)
+        {
+            ImGui::Begin("CubeLookingAt", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("Position: (%f, %f, %f)", cubeLookingAt->position.x, cubeLookingAt->position.y, cubeLookingAt->position.z);
+            ImGui::End();
+
+            
+        }
+        
         
         if (camera.position.y < -10)
         {
@@ -896,18 +942,7 @@ int main()
             }
         }
         
-        ImGui::Begin("COLLISION", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Camera PointXPlusColliding: %s", camera.pointXPlusColliding ? "True" : "False");
-        ImGui::Text("Camera PointXMinusColliding: %s", camera.pointXMinusColliding ? "True" : "False");
-        ImGui::Text("Camera PointZPlusColliding: %s", camera.pointZPlusColliding ? "True" : "False");
-        ImGui::Text("Camera PointZMinusColliding: %s", camera.pointZMinusColliding ? "True" : "False");
-        //their positions
-        ImGui::Spacing();
-        ImGui::Text("Camera PointXPlus: (%f, %f, %f)", camera.pointXPlus.x, camera.pointXPlus.y, camera.pointXPlus.z);
-        ImGui::Text("Camera PointXMinus: (%f, %f, %f)", camera.pointXMinus.x, camera.pointXMinus.y, camera.pointXMinus.z);
-        ImGui::Text("Camera PointZPlus: (%f, %f, %f)", camera.pointZPlus.x, camera.pointZPlus.y, camera.pointZPlus.z);
-        ImGui::Text("Camera PointZMinus: (%f, %f, %f)", camera.pointZMinus.x, camera.pointZMinus.y, camera.pointZMinus.z);
-        ImGui::End();
+
         
         
         

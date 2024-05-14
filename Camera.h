@@ -419,6 +419,12 @@ public:
 
     }
 
+    glm::vec3& GetPosition()
+    {
+        return position;
+    }
+    
+
     glm::vec3 getViewDirection() const
     {
         // Calculate the view direction vector
