@@ -28,8 +28,6 @@
 #include "CubeCollider.h"
 
 
-
-
 Camera camera;
 int width = 1920;
 int height = 1080;
@@ -38,6 +36,8 @@ bool mouseControl = false;
 
 
 
+
+#pragma region CLASSES/METHODS
 
 
 class Cube
@@ -76,40 +76,40 @@ public:
         this->cornerPositions = 
         {
             // Front face
-            -1, -1,  1, 0.0f, 0.0f, textureID, 0, 0, 1,
-             1, -1,  1, 1.0f, 0.0f, textureID, 0, 0, 1,
-             1,  1,  1, 1.0f, 1.0f, textureID, 0, 0, 1,
-            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 0, 1,
+            -1, -1,  1, 0.0f, 0.0f, textureID, 0, 0, 1, 0,
+             1, -1,  1, 1.0f, 0.0f, textureID, 0, 0, 1, 0,
+             1,  1,  1, 1.0f, 1.0f, textureID, 0, 0, 1, 0,
+            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 0, 1, 0,
 
             // Back face <<<<<<<
-            -1, -1, -1, 0.0f, 0.0f, textureID, 0, 0, -1,
-             1, -1, -1, 1.0f, 0.0f, textureID, 0, 0, -1,
-             1,  1, -1, 1.0f, 1.0f, textureID, 0, 0, -1,
-            -1,  1, -1, 0.0f, 1.0f, textureID, 0, 0, -1,
+            -1, -1, -1, 0.0f, 0.0f, textureID, 0, 0, -1, 0,
+             1, -1, -1, 1.0f, 0.0f, textureID, 0, 0, -1, 0,
+             1,  1, -1, 1.0f, 1.0f, textureID, 0, 0, -1, 0,
+            -1,  1, -1, 0.0f, 1.0f, textureID, 0, 0, -1, 0,
 
             // Top face
-            -1,  1, -1, 0.0f, 0.0f, textureID, 0, 1, 0,
-             1,  1, -1, 1.0f, 0.0f, textureID, 0, 1, 0,
-             1,  1,  1, 1.0f, 1.0f, textureID, 0, 1, 0,
-            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 1, 0,
+            -1,  1, -1, 0.0f, 0.0f, textureID, 0, 1, 0, 0,
+             1,  1, -1, 1.0f, 0.0f, textureID, 0, 1, 0, 0,
+             1,  1,  1, 1.0f, 1.0f, textureID, 0, 1, 0, 0,
+            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 1, 0, 0,
 
             // Bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID, 0, -1, 0,
-             1, -1, -1, 1.0f, 0.0f, textureID, 0, -1, 0,
-             1, -1,  1, 1.0f, 1.0f, textureID, 0, -1, 0,
-            -1, -1,  1, 0.0f, 1.0f, textureID, 0, -1, 0,
+            -1, -1, -1, 0.0f, 0.0f, textureID, 0, -1, 0, 0,
+             1, -1, -1, 1.0f, 0.0f, textureID, 0, -1, 0, 0,
+             1, -1,  1, 1.0f, 1.0f, textureID, 0, -1, 0, 0,
+            -1, -1,  1, 0.0f, 1.0f, textureID, 0, -1, 0, 0,
 
             // Right face
-            1, -1, -1, 0.0f, 0.0f, textureID, 1, 0, 0,
-            1,  1, -1, 0.0f, 1.0f, textureID, 1, 0, 0,
-            1,  1,  1, 1.0f, 1.0f, textureID, 1, 0, 0,
-            1, -1,  1, 1.0f, 0.0f, textureID, 1, 0, 0,
+            1, -1, -1, 0.0f, 0.0f, textureID, 1, 0, 0, 0,
+            1,  1, -1, 0.0f, 1.0f, textureID, 1, 0, 0, 0,
+            1,  1,  1, 1.0f, 1.0f, textureID, 1, 0, 0, 0,
+            1, -1,  1, 1.0f, 0.0f, textureID, 1, 0, 0, 0,
 
             // Left face
-            -1, -1, -1, 0.0f, 0.0f, textureID, -1, 0, 0,
-            -1,  1, -1, 0.0f, 1.0f, textureID, -1, 0, 0,
-            -1,  1,  1, 1.0f, 1.0f, textureID, -1, 0, 0,
-            -1, -1,  1, 1.0f, 0.0f, textureID, -1, 0, 0
+            -1, -1, -1, 0.0f, 0.0f, textureID, -1, 0, 0, 0,
+            -1,  1, -1, 0.0f, 1.0f, textureID, -1, 0, 0, 0,
+            -1,  1,  1, 1.0f, 1.0f, textureID, -1, 0, 0, 0,
+            -1, -1,  1, 1.0f, 0.0f, textureID, -1, 0, 0, 0,
         };
 
 
@@ -169,9 +169,7 @@ struct Notification
     float time;
 };
 
-const unsigned int STRIDE = 9;
 std::vector<Notification*> notifications;
-int cooldownForBreak = 0;
 
 void addNotification(std::string message, float time)
 {
@@ -197,7 +195,7 @@ float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
     return penetrationDepth;
 }
 
-void SetPosition(float* positions, int index, glm::vec3 position, unsigned int amountOfValuesPerTri)
+void SetPosition(float*& positions, int index, glm::vec3 position, unsigned int amountOfValuesPerTri)
 {
     // Front face
     positions[index*amountOfValuesPerTri] = position.x - 1;
@@ -302,6 +300,38 @@ void SetPosition(float* positions, int index, glm::vec3 position, unsigned int a
     positions[(index+23)*amountOfValuesPerTri+2] = position.z + 1;
 }
 
+void SetChosen(float*& positions, int index, float chosen, unsigned int amountOfValuesPerTri)
+{
+    positions[index*amountOfValuesPerTri+9] = chosen;
+    positions[(index+1)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+2)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+3)*amountOfValuesPerTri+9] = chosen;
+
+    positions[(index+4)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+5)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+6)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+7)*amountOfValuesPerTri+9] = chosen;
+
+    positions[(index+8)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+9)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+10)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+11)*amountOfValuesPerTri+9] = chosen;
+
+    positions[(index+12)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+13)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+14)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+15)*amountOfValuesPerTri+9] = chosen;
+
+    positions[(index+16)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+17)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+18)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+19)*amountOfValuesPerTri+9] = chosen;
+
+    positions[(index+20)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+21)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+22)*amountOfValuesPerTri+9] = chosen;
+    positions[(index+23)*amountOfValuesPerTri+9] = chosen;
+}
 
 glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
 {
@@ -316,12 +346,23 @@ glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
     return direction;
 }
 
+#pragma endregion
+
+
+
+
 glm::vec3 sunPosition = glm::vec3(0,5,0);
+const unsigned int STRIDE = 10;
+int cooldownForBreak = 0;
+
+
 
 int main() 
 {
 
 #pragma region INITIALIZATION
+
+#pragma region MAPSETUP
     std::cout << "Setting up noise values!" << std::endl;
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
@@ -427,8 +468,9 @@ int main()
     
 
     std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
+#pragma endregion MAPSETUP
 
-    
+#pragma region GLINIT
     const unsigned int AMOUNT_OF_INDICES = voxels[0].indices.size();
     const unsigned int FULL_STRIDE  = STRIDE * AMOUNT_OF_INDICES * VertexBufferElement::GetSizeOfType(GL_FLOAT);
     int indicesCount = voxels.size() * AMOUNT_OF_INDICES;
@@ -495,7 +537,7 @@ int main()
     unsigned int vao;
     GLCall(glGenVertexArrays(1, &vao));
     GLCall(glBindVertexArray(vao));
-
+#pragma endregion GLINIT
 
 
     //this is the size of each tri's info (5, 3 for position, 2 for texture coordinates) * 36 (number of indices in our cube)
@@ -507,8 +549,11 @@ int main()
     layout.Push(GL_FLOAT, 2); //texture coordinates
     layout.Push(GL_FLOAT, 1); //textureID
     layout.Push(GL_FLOAT, 3); //normal
+    layout.Push(GL_FLOAT, 1); //cubeLookingAt
     va.AddBuffer(vb,layout);
     IndexBuffer ib(indicesAfter,indicesCount);
+
+#pragma region GLINIT2
 
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 5000.0f);
     glm::mat4 view = camera.getViewMatrix();
@@ -572,25 +617,19 @@ int main()
 
     std::vector<Cube*> voxelsCloseToPlayer;
     Cube* cubeLookingAt = nullptr;
-    #pragma endregion INITIALIZATION
+
+#pragma endregion GLINIT2
+
+#pragma endregion INITIALIZATION
     
     while (!glfwWindowShouldClose(window)) 
     {
-        //get direction vector from camera to camera.target
-        glm::vec3 direction = camera.target - camera.position;
-        direction.x = direction.x * 3;
-        direction.y = direction.y * 3;
-        direction.z = direction.z * 3;
-
-        SetPosition(positions, 0, sunPosition, STRIDE);
+        //SetPosition(positions, 0, sunPosition, STRIDE);
         
         //lock to 60fps
         auto frameStart = std::chrono::steady_clock::now();
         float distToCube = 99999999;
-
-        //print the first three elements of the position array
-        //std::cout << positions[0] << " " << positions[1] << " " << positions[2] << std::endl;
-
+        
         if (needsRefresh)
         {
             needsRefresh = false;
@@ -641,7 +680,6 @@ int main()
             ib.Bind();
         }
 
-        //SetPosition(positions, 0, camera.target + direction, STRIDE);
         vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
         va.UpdateBuffer(vb, layout);
 
@@ -678,7 +716,10 @@ int main()
             sunPosition.y -= 0.1f;
         }
 
-
+        // if (cubeLookingAt != nullptr)
+        // {
+        //     SetChosen(positions, cubeLookingAt->index, 1.f, STRIDE);
+        // }
 
 #pragma region MVP
         ImGui_ImplOpenGL3_NewFrame();
@@ -705,7 +746,7 @@ int main()
         for (int i = 0; i < voxels.size(); i++)
         {
             float distance = glm::distance(camera.position, voxels[i].position);
-            if (distance < 15)
+            if (distance < 15 && distance > -15)
             {
                 voxelsCloseToPlayer.push_back(&voxels[i]);
             }
@@ -766,7 +807,7 @@ int main()
                 camera.pointZMinusColliding = true;
             }
 
-
+            bool isChosen = false;
             for (int j = 0; j < 6; j++)
             {
                 if (voxelsCloseToPlayer[i]->isPointInside(pointsToCheck[j]))
@@ -776,9 +817,14 @@ int main()
                     {
                         distToCube = distance;
                         cubeLookingAt = voxelsCloseToPlayer[i];
+                        isChosen = true;
                     }
                 }
             }
+
+            
+                SetChosen(positions,voxelsCloseToPlayer[i]->index,1.f,STRIDE);
+            
             
             
 
@@ -880,6 +926,7 @@ int main()
         {
             ImGui::Begin("CubeLookingAt", NULL, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Position: (%f, %f, %f)", cubeLookingAt->position.x, cubeLookingAt->position.y, cubeLookingAt->position.z);
+            ImGui::Text("isChosen: %f", positions[cubeLookingAt->index*10+9]);
             ImGui::End();
 
             

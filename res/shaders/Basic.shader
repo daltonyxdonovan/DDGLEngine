@@ -5,6 +5,7 @@ layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 texCoord;
 layout(location = 2) in float textureID;
 layout(location = 3) in vec3 normal;
+layout(location = 4) in float chosen;
 
 out vec2 v_TexCoord;
 out float v_VertexY;
@@ -12,6 +13,7 @@ out float v_VertexX;
 out float v_VertexZ;
 out float textureIDint;
 out vec3 normalVec;
+out float chosen2;
 
 uniform mat4 u_MVP;
 
@@ -25,6 +27,7 @@ void main()
 
     textureIDint = textureID;
     normalVec = normal;
+    chosen2 = chosen;
 }
 
 
@@ -39,7 +42,7 @@ in float v_VertexX;
 in float v_VertexZ;
 in float textureIDint;
 in vec3 normalVec;
-
+in float chosen2;
 
 uniform sampler2D u_TextureBrick1;
 uniform sampler2D u_TextureBrick2;
@@ -63,10 +66,10 @@ void main()
 
     vec3 lightDir = normalize(lightPos - vec3(v_VertexX, v_VertexY, v_VertexZ)); // Calculate the direction from the fragment to the light source
     float diff = max(dot(normalVec, lightDir), 0.0); // Calculate diffuse intensity
-    vec3 diffuse = diff * vec3(1.0); // Adjust light color if needed
+    vec3 diffuse = diff * vec3(1); // Adjust light color if needed
     texColor.rgb *= diffuse; // Apply diffuse lighting to texture color
 
-
+    
 
     color = texColor;
 }
