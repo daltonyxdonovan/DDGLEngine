@@ -26,13 +26,14 @@
 #include <vector>
 #include <thread>
 #include "CubeCollider.h"
+#include "Light.h"
 
 
 Camera camera;
 int width = 1920;
 int height = 1080;
 bool mouseControl = false;
-
+std::vector<Light*> lights;
 
 
 
@@ -121,13 +122,8 @@ public:
             glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), //4
             glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), //5
             glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), //6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z) //7
-
-
-
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  //7
         };
-
-        
     }
 
     void UpdateVertices()
@@ -348,10 +344,27 @@ glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
 
 #pragma endregion
 
+Light* GetClosestLight(glm::vec3 position, std::vector<Light*> lights)
+{
+    int distance = 9999;
+    int index = 0;
+
+    for (int i = 0; i < lights.size(); i++)
+    {
+        float dist = glm::distance(position,lights[i]->position);
+        if (dist < distance)
+        {
+            distance = dist;
+            index = i;
+        }
+    }
+
+    return lights[index];
+
+}
 
 
 
-glm::vec3 sunPosition = glm::vec3(0,5,0);
 const unsigned int STRIDE = 10;
 int cooldownForBreak = 0;
 
@@ -359,6 +372,13 @@ int cooldownForBreak = 0;
 
 int main() 
 {
+    lights.push_back(new Light(glm::vec3(-10,6,-10)));
+    lights.push_back(new Light(glm::vec3(-10,5,10)));
+    lights[1]->rgba = glm::vec4(1,0,0,1);
+    lights.push_back(new Light(glm::vec3(10,4,10)));
+    lights[2]->rgba = glm::vec4(0,1,0,1);
+    lights.push_back(new Light(glm::vec3(10,3,-10)));
+    lights[3]->rgba = glm::vec4(0,0,1,1);
 
 #pragma region INITIALIZATION
 
@@ -684,43 +704,39 @@ int main()
         va.UpdateBuffer(vb, layout);
 
         
-        
+#pragma region KEYPRESSES
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             paused = true;
             mouseControl = true;
         }
 
-        if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
-        {
-            sunPosition.z += 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
-        {
-            sunPosition.z -= 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
-        {
-            sunPosition.x += 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
-        {
-            sunPosition.x -= 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
-        {
-            sunPosition.y += 0.1f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS)
-        {
-            sunPosition.y -= 0.1f;
-        }
-
-        // if (cubeLookingAt != nullptr)
+        // if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
         // {
-        //     SetChosen(positions, cubeLookingAt->index, 1.f, STRIDE);
+        //     sunPosition.z += 0.1f;
         // }
-
+        // if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
+        // {
+        //     sunPosition.z -= 0.1f;
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
+        // {
+        //     sunPosition.x += 0.1f;
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
+        // {
+        //     sunPosition.x -= 0.1f;
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
+        // {
+        //     sunPosition.y += 0.1f;
+        // }
+        // if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS)
+        // {
+        //     sunPosition.y -= 0.1f;
+        // }
+#pragma endregion KEYPRESSES
+        
 #pragma region MVP
         ImGui_ImplOpenGL3_NewFrame();
         currentFrame = glfwGetTime();
@@ -735,7 +751,15 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 mvp = proj * view * model;
         shader.SetUniformMat4f("u_MVP", mvp);
-        shader.SetUniform3f("lightPos", sunPosition.x, sunPosition.y, sunPosition.z);
+        int numLights = lights.size();
+
+        for (int i = 0; i < numLights; i++) {
+            shader.SetUniform3f(("lightPos[" + std::to_string(i) + "]").c_str(), lights[i]->position.x, lights[i]->position.y, lights[i]->position.z);
+            shader.SetUniform4f(("lightColor[" + std::to_string(i) + "]").c_str(), lights[i]->rgba.x, lights[i]->rgba.y, lights[i]->rgba.z, lights[i]->rgba.w);
+        
+            lights[i]->Update();
+        }
+        shader.SetUniform1i("numLights", numLights);
         renderer.Draw(va, ib, shader);
 
 #pragma endregion MVP
@@ -884,7 +908,7 @@ int main()
 #pragma endregion COLLISION
 
         //if left mouse is pressed
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
             cooldownForBreak++;
             if (cooldownForBreak > 5)

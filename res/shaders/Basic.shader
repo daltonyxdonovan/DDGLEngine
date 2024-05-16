@@ -49,12 +49,14 @@ uniform sampler2D u_TextureBrick2;
 uniform sampler2D u_TextureBrick3;
 uniform sampler2D u_TextureBrick4;
 
-uniform vec3 lightPos;
+uniform vec3 lightPos[10]; // Array of light positions, with a maximum of 10 lights
+uniform vec4 lightColor[10]; // Array of light colors, with a maximum of 10 lights
+uniform int numLights;     // Number of active lights
 
 void main()
 {
     vec4 texColor;
-    
+
     if (textureIDint <= 0.0f)
         texColor = texture(u_TextureBrick1, v_TexCoord);
     else if (textureIDint <= 1.0f)
@@ -64,12 +66,24 @@ void main()
     else if (textureIDint <= 3.0f)
         texColor = texture(u_TextureBrick4, v_TexCoord);
 
-    vec3 lightDir = normalize(lightPos - vec3(v_VertexX, v_VertexY, v_VertexZ)); // Calculate the direction from the fragment to the light source
-    float diff = max(dot(normalVec, lightDir), 0.0); // Calculate diffuse intensity
-    vec3 diffuse = diff * vec3(1); // Adjust light color if needed
-    texColor.rgb *= diffuse; // Apply diffuse lighting to texture color
+    vec3 fragPos = vec3(v_VertexX, v_VertexY, v_VertexZ);
+    vec3 normal = normalize(normalVec);
+    vec3 ambient = vec3(0.1); // Ambient lighting
 
-    
+    vec3 finalColor = vec3(0.0);
+
+    for (int i = 0; i < numLights; i++) {
+        vec3 lightDir = normalize(lightPos[i] - fragPos); // Calculate the direction from the fragment to the light source
+        float distance = length(lightPos[i] - fragPos); // Calculate the distance to the light source
+        float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance)); // Attenuation formula
+
+        float diff = max(dot(normal, lightDir), 0.0); // Calculate diffuse intensity
+        vec3 diffuse = diff * vec3(lightColor[i]); // Use light color
+        finalColor += diffuse * attenuation; // Apply attenuation to diffuse lighting
+    }
+
+    finalColor = ambient + finalColor; // Add ambient light to the final color
+    texColor.rgb *= finalColor; // Apply lighting to texture color
 
     color = texColor;
 }
