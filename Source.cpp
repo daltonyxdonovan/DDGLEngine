@@ -1,49 +1,48 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "Ray.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <algorithm>
-#include <iostream>
 #include <cmath>
-#include <glm/glm.hpp>
-#include "Ray.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+
 #include "Camera.h"
-#include <iterator>
-#include "Renderer.h"
-#include <fstream>
-#include <string>
-#include <sstream>
-#include "VertexBuffer.h"
+#include "CubeCollider.h"
+#include "FastNoiseLite.h"
 #include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "VertexBufferLayout.h"
+#include "Light.h"
+#include "Renderer.h"
 #include "Shader.h"
-#include "src/Texture.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "FastNoiseLite.h"
-#include <vector>
+#include "src/Texture.h"
+#include <fstream>
+#include <iterator>
+#include <sstream>
+#include <string>
 #include <thread>
-#include "CubeCollider.h"
-#include "Light.h"
-
+#include <vector>
 
 Camera camera;
 int width = 1920;
 int height = 1080;
 bool mouseControl = false;
-std::vector<Light*> lights;
-
-
-
+std::vector<Light *> lights;
+bool picking = false;
+int chosenTextureID = 0;
 
 #pragma region CLASSES/METHODS
 
-
 class Cube
 {
-public:
+  public:
     glm::vec3 position;
     glm::vec3 rotation;
     glm::vec3 scale;
@@ -52,96 +51,226 @@ public:
     std::vector<glm::vec3> verticesAfterTransformation = {};
     CubeCollider collider;
     int index = 0;
-
+    bool invisible = false;
 
     std::vector<float> cornerPositions;
 
-    std::vector<unsigned int> indices = 
-    { 
-        0, 1, 2, 2, 3, 0, //front face
-        4, 5, 6, 6, 7, 4, //back face
-        8, 9, 10, 10, 11, 8, //top face
-        12, 13, 14, 14, 15, 12, //bottom face
-        16, 17, 18, 18, 19, 16, //right face
-        20, 21, 22, 22, 23, 20 //left face
+    std::vector<unsigned int> indices = {
+        0,  1,  2,  2,  3,  0,  // front face
+        4,  5,  6,  6,  7,  4,  // back face
+        8,  9,  10, 10, 11, 8,  // top face
+        12, 13, 14, 14, 15, 12, // bottom face
+        16, 17, 18, 18, 19, 16, // right face
+        20, 21, 22, 22, 23, 20  // left face
     };
 
-    
-    Cube(glm::vec3 position, float textureID)
+    Cube()
     {
-        this->position = position;glm::vec3();
+        float textureID = 0;
+        float chosen = 0;
+        this->position = glm::vec3(0, 0, 0);
+        this->rotation = glm::vec3(0, 0, 0);
+        this->textureIndex = 0;
+        this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
+        collider.setPosition(position);
+        collider.setSize(scale);
+        // clang-format off
+        this->cornerPositions = 
+        {
+            // Front face
+            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
+
+            // Back face
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
+             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
+
+            // Top face
+            -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1, -1, 0.1f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  1,  0, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
+
+            // Bottom face
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
+            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
+
+            // Right face
+             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
+             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
+
+            // Left face
+            -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1,  1,  1, 0.1f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1, -1,  1, 0.1f, 0.0f, textureID, -1,  0,  0, chosen,
+        };
+
+        // clang-format on
+
+        vertices = {
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
+        };
+    }
+
+    Cube(glm::vec3 position, float textureID, float chosen = 0)
+    {
+        this->position = position;
+        this->rotation = glm::vec3();
         this->textureIndex = textureID;
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider.setPosition(position);
         collider.setSize(scale);
+        // clang-format off
         this->cornerPositions = 
         {
             // Front face
-            -1, -1,  1, 0.0f, 0.0f, textureID, 0, 0, 1, 0,
-             1, -1,  1, 1.0f, 0.0f, textureID, 0, 0, 1, 0,
-             1,  1,  1, 1.0f, 1.0f, textureID, 0, 0, 1, 0,
-            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 0, 1, 0,
+            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
 
-            // Back face <<<<<<<
-            -1, -1, -1, 0.0f, 0.0f, textureID, 0, 0, -1, 0,
-             1, -1, -1, 1.0f, 0.0f, textureID, 0, 0, -1, 0,
-             1,  1, -1, 1.0f, 1.0f, textureID, 0, 0, -1, 0,
-            -1,  1, -1, 0.0f, 1.0f, textureID, 0, 0, -1, 0,
+            // Back face
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
+             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
 
             // Top face
-            -1,  1, -1, 0.0f, 0.0f, textureID, 0, 1, 0, 0,
-             1,  1, -1, 1.0f, 0.0f, textureID, 0, 1, 0, 0,
-             1,  1,  1, 1.0f, 1.0f, textureID, 0, 1, 0, 0,
-            -1,  1,  1, 0.0f, 1.0f, textureID, 0, 1, 0, 0,
+            -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1, -1, 0.1f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  1,  0, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
 
             // Bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID, 0, -1, 0, 0,
-             1, -1, -1, 1.0f, 0.0f, textureID, 0, -1, 0, 0,
-             1, -1,  1, 1.0f, 1.0f, textureID, 0, -1, 0, 0,
-            -1, -1,  1, 0.0f, 1.0f, textureID, 0, -1, 0, 0,
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
+            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
 
             // Right face
-            1, -1, -1, 0.0f, 0.0f, textureID, 1, 0, 0, 0,
-            1,  1, -1, 0.0f, 1.0f, textureID, 1, 0, 0, 0,
-            1,  1,  1, 1.0f, 1.0f, textureID, 1, 0, 0, 0,
-            1, -1,  1, 1.0f, 0.0f, textureID, 1, 0, 0, 0,
+             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
+             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
 
             // Left face
-            -1, -1, -1, 0.0f, 0.0f, textureID, -1, 0, 0, 0,
-            -1,  1, -1, 0.0f, 1.0f, textureID, -1, 0, 0, 0,
-            -1,  1,  1, 1.0f, 1.0f, textureID, -1, 0, 0, 0,
-            -1, -1,  1, 1.0f, 0.0f, textureID, -1, 0, 0, 0,
+            -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1,  1,  1, 0.1f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1, -1,  1, 0.1f, 0.0f, textureID, -1,  0,  0, chosen,
         };
 
+        // clang-format on
 
         vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), //1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), //2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), //3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), //4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), //5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), //6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  //7
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
+        };
+    }
+
+    Cube(glm::vec3 pos, float textureID) : position(pos), textureIndex(textureID), collider()
+    {
+        float chosen = 0;
+        this->position = position;
+        this->rotation = glm::vec3();
+        this->textureIndex = textureID;
+        this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
+        collider.setPosition(position);
+        collider.setSize(scale);
+        // clang-format off
+        this->cornerPositions = 
+        {
+            // Front face
+            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
+
+            // Back face
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
+             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
+
+            // Top face
+            -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1, -1, 0.1f, 0.0f, textureID,  0,  1,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  0,  1,  0, chosen,
+            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
+
+            // Bottom face
+            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
+            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
+
+            // Right face
+             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
+             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
+             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
+             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
+
+            // Left face
+            -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
+            -1,  1, -1, 0.0f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1,  1,  1, 0.1f, 0.1f, textureID, -1,  0,  0, chosen,
+            -1, -1,  1, 0.1f, 0.0f, textureID, -1,  0,  0, chosen,
+        };
+
+        // clang-format on
+
+        vertices = {
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
         };
     }
 
     void UpdateVertices()
     {
         vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), //0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), //1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), //2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), //3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), //4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), //5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), //6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z) //7
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
+            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
+            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
+            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
+            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
         };
-
     }
 
-    
+    void SetInvisible(bool yes = true)
+    {
+        invisible = yes;
+    }
 
     bool isPointInside(glm::vec3 point)
     {
@@ -161,172 +290,34 @@ public:
 
 struct Notification
 {
-    std::string message;
-    float time;
+    std::string message = "";
+    float time = 0;
 };
 
-std::vector<Notification*> notifications;
+std::vector<Notification *> notifications;
 
 void addNotification(std::string message, float time)
 {
-    Notification* notification = new Notification();
+    Notification *notification = new Notification();
     notification->message = message;
     notification->time = time;
     notifications.push_back(notification);
 }
 
-bool needsRefresh = false;
+bool needsRefresh = true;
 
-float calculatePenetrationDepth(const glm::vec3& point, const Cube& voxel)
+float calculatePenetrationDepth(const glm::vec3 &point, const Cube &voxel)
 {
     // Calculate the closest point on the voxel to the point
     glm::vec3 closestPointOnVoxel = glm::clamp(point, voxel.position - voxel.scale, voxel.position + voxel.scale);
-    
+
     // Calculate the difference vector between the point and the closest point on the voxel
     glm::vec3 difference = closestPointOnVoxel - point;
-    
+
     // Calculate the length of the difference vector
     float penetrationDepth = glm::length(difference);
-    
+
     return penetrationDepth;
-}
-
-void SetPosition(float*& positions, int index, glm::vec3 position, unsigned int amountOfValuesPerTri)
-{
-    // Front face
-    positions[index*amountOfValuesPerTri] = position.x - 1;
-    positions[index*amountOfValuesPerTri+1] = position.y - 1;
-    positions[index*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+1)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+1)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+1)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+2)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+2)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+2)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+3)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+3)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+3)*amountOfValuesPerTri+2] = position.z + 1;
-
-    // Back face
-    positions[(index+4)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+4)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+4)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+5)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+5)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+5)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+6)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+6)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+6)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+7)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+7)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+7)*amountOfValuesPerTri+2] = position.z - 1;
-
-    // Top face
-    positions[(index+8)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+8)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+8)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+9)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+9)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+9)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+10)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+10)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+10)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+11)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+11)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+11)*amountOfValuesPerTri+2] = position.z + 1;
-
-    // Bottom face
-    positions[(index+12)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+12)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+12)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+13)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+13)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+13)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+14)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+14)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+14)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+15)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+15)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+15)*amountOfValuesPerTri+2] = position.z + 1;
-
-    // Right face
-    positions[(index+16)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+16)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+16)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+17)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+17)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+17)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+18)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+18)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+18)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+19)*amountOfValuesPerTri] = position.x + 1;
-    positions[(index+19)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+19)*amountOfValuesPerTri+2] = position.z + 1;
-
-    // Left face
-    positions[(index+20)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+20)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+20)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+21)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+21)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+21)*amountOfValuesPerTri+2] = position.z - 1;
-
-    positions[(index+22)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+22)*amountOfValuesPerTri+1] = position.y + 1;
-    positions[(index+22)*amountOfValuesPerTri+2] = position.z + 1;
-
-    positions[(index+23)*amountOfValuesPerTri] = position.x - 1;
-    positions[(index+23)*amountOfValuesPerTri+1] = position.y - 1;
-    positions[(index+23)*amountOfValuesPerTri+2] = position.z + 1;
-}
-
-void SetChosen(float*& positions, int index, float chosen, unsigned int amountOfValuesPerTri)
-{
-    positions[index*amountOfValuesPerTri+9] = chosen;
-    positions[(index+1)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+2)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+3)*amountOfValuesPerTri+9] = chosen;
-
-    positions[(index+4)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+5)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+6)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+7)*amountOfValuesPerTri+9] = chosen;
-
-    positions[(index+8)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+9)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+10)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+11)*amountOfValuesPerTri+9] = chosen;
-
-    positions[(index+12)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+13)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+14)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+15)*amountOfValuesPerTri+9] = chosen;
-
-    positions[(index+16)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+17)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+18)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+19)*amountOfValuesPerTri+9] = chosen;
-
-    positions[(index+20)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+21)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+22)*amountOfValuesPerTri+9] = chosen;
-    positions[(index+23)*amountOfValuesPerTri+9] = chosen;
 }
 
 glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
@@ -342,48 +333,224 @@ glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
     return direction;
 }
 
-#pragma endregion
-
-Light* GetClosestLight(glm::vec3 position, std::vector<Light*> lights)
+void SaveCubesToFile(const std::vector<Cube> &cubes, const std::string &filename)
 {
-    int distance = 9999;
-    int index = 0;
+    std::ofstream file(filename);
 
-    for (int i = 0; i < lights.size(); i++)
+    if (!file.is_open())
     {
-        float dist = glm::distance(position,lights[i]->position);
-        if (dist < distance)
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return;
+    }
+
+    for (const auto &cube : cubes)
+    {
+        file << "Cube\n";
+        file << "Position: " << cube.position.x << " " << cube.position.y << " " << cube.position.z << "\n";
+        file << "Rotation: " << cube.rotation.x << " " << cube.rotation.y << " " << cube.rotation.z << "\n";
+        file << "Scale: " << cube.scale.x << " " << cube.scale.y << " " << cube.scale.z << "\n";
+        file << "TextureIndex: " << cube.textureIndex << "\n";
+        file << "VerticesAfterTransformation: ";
+        for (const auto &vertex : cube.verticesAfterTransformation)
         {
-            distance = dist;
-            index = i;
+            file << vertex.x << " " << vertex.y << " " << vertex.z << " ";
+        }
+        file << "\n";
+        file << "Index: " << cube.index << "\n";
+        file << "Invisible: " << (cube.invisible ? "true" : "false") << "\n";
+        file << "CornerPositions: ";
+        for (const auto &corner : cube.cornerPositions)
+        {
+            file << corner << " ";
+        }
+        file << "\n";
+        file << "Indices: ";
+        for (const auto &index : cube.indices)
+        {
+            file << index << " ";
+        }
+        file << "\n";
+    }
+
+    file.close();
+}
+
+std::vector<Cube> LoadCubesFromFile(const std::string &filename)
+{
+    std::vector<Cube> cubes;
+    std::ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return cubes;
+    }
+
+    std::cout << "loading voxels..." << std::endl;
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        if (line == "Cube")
+        {
+            Cube cube; // Default constructor, position and textureID will be updated
+
+            std::getline(file, line);
+            std::istringstream posStream(line.substr(10));
+            posStream >> cube.position.x >> cube.position.y >> cube.position.z;
+
+            std::getline(file, line);
+            std::istringstream rotStream(line.substr(10));
+            rotStream >> cube.rotation.x >> cube.rotation.y >> cube.rotation.z;
+
+            std::getline(file, line);
+            std::istringstream scaleStream(line.substr(7));
+            scaleStream >> cube.scale.x >> cube.scale.y >> cube.scale.z;
+
+            std::getline(file, line);
+            cube.textureIndex = std::stoi(line.substr(14));
+
+            std::getline(file, line);
+            std::istringstream vatStream(line.substr(28));
+            cube.verticesAfterTransformation.clear();
+            glm::vec3 vertex;
+            while (vatStream >> vertex.x >> vertex.y >> vertex.z)
+            {
+                cube.verticesAfterTransformation.push_back(vertex);
+            }
+
+            std::getline(file, line);
+            cube.index = std::stoi(line.substr(7));
+
+            std::getline(file, line);
+            cube.invisible = (line.substr(11) == "true");
+
+            std::getline(file, line);
+            std::istringstream cpStream(line.substr(17));
+            cube.cornerPositions.clear();
+            float corner;
+            while (cpStream >> corner)
+            {
+                cube.cornerPositions.push_back(corner);
+            }
+
+            std::getline(file, line);
+            std::istringstream indicesStream(line.substr(9));
+            cube.indices.clear();
+            unsigned int index;
+            while (indicesStream >> index)
+            {
+                cube.indices.push_back(index);
+            }
+
+            cubes.push_back(cube);
+
+            std::cout << "cube loaded!" << std::endl;
         }
     }
 
-    return lights[index];
-
+    file.close();
+    return cubes;
 }
 
-
-
-const unsigned int STRIDE = 10;
-int cooldownForBreak = 0;
-
-
-
-int main() 
+void SaveLightsToFile(const std::vector<Light *> &lights, const std::string &filename)
 {
-    lights.push_back(new Light(glm::vec3(-10,6,-10)));
-    lights.push_back(new Light(glm::vec3(-10,5,10)));
-    lights[1]->rgba = glm::vec4(1,0,0,1);
-    lights.push_back(new Light(glm::vec3(10,4,10)));
-    lights[2]->rgba = glm::vec4(0,1,0,1);
-    lights.push_back(new Light(glm::vec3(10,3,-10)));
-    lights[3]->rgba = glm::vec4(0,0,1,1);
+    std::ofstream file(filename);
+
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return;
+    }
+
+    for (const auto &light : lights)
+    {
+        file << "Light\n";
+        file << "Position: " << light->position.x << " " << light->position.y << " " << light->position.z << "\n";
+        file << "Direction: " << light->direction.x << " " << light->direction.y << " " << light->direction.z << "\n";
+        file << "RGBA: " << light->rgba.r << " " << light->rgba.g << " " << light->rgba.b << " " << light->rgba.a
+             << "\n";
+        file << "Down: " << (light->down ? "true" : "false") << "\n";
+        file << "Brightness: " << light->brightness << "\n";
+    }
+
+    file.close();
+}
+
+std::vector<Light *> LoadLightsFromFile(const std::string &filename)
+{
+    std::vector<Light *> lights;
+    std::ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return lights;
+    }
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        if (line == "Light")
+        {
+            glm::vec3 position;
+            glm::vec3 direction;
+            glm::vec4 rgba;
+            bool down;
+            float brightness;
+
+            std::getline(file, line);
+            std::istringstream posStream(line.substr(10));
+            posStream >> position.x >> position.y >> position.z;
+
+            std::getline(file, line);
+            std::istringstream dirStream(line.substr(11));
+            dirStream >> direction.x >> direction.y >> direction.z;
+
+            std::getline(file, line);
+            std::istringstream rgbaStream(line.substr(6));
+            rgbaStream >> rgba.r >> rgba.g >> rgba.b >> rgba.a;
+
+            std::getline(file, line);
+            down = (line.substr(6) == "true");
+
+            std::getline(file, line);
+            brightness = std::stof(line.substr(12));
+
+            Light *light = new Light(position);
+            light->direction = direction;
+            light->rgba = rgba;
+            light->down = down;
+            light->brightness = brightness;
+
+            lights.push_back(light);
+        }
+    }
+
+    file.close();
+    return lights;
+}
+
+#pragma endregion
+
+Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
+const unsigned int STRIDE = cubeDummy.cornerPositions.size() / 24;
+int cooldownForBreak = 0;
+bool pinned = false;
+double lastFrameTime = 0.0;
+glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
+
+const bool PRINTLOG = false;     // for debugging start of program
+const bool PRINTLOOPLOG = false; // for debugging loop  in program
+
+int main()
+{
 
 #pragma region INITIALIZATION
 
 #pragma region MAPSETUP
-    std::cout << "Setting up noise values!" << std::endl;
+    if (PRINTLOG)
+        std::cout << "Setting up noise values!" << std::endl;
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
     noise.SetFractalType(FastNoiseLite::FractalType_FBm);
@@ -393,123 +560,45 @@ int main()
     noise.SetFrequency(0.06f);
     noise.SetSeed(rand());
 
-    std::cout << "Building map from map.txt..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "Building map from map.txt..." << std::endl;
     std::vector<Cube> voxels;
+    voxels.push_back(cubeDummy);
 
-    //open map.txt and read the map
-    std::ifstream file("map.txt");
-    std::string line;
-    if (file.is_open())
-    {
-        int mapHeight = 0;
-        int mapWidth = 0;
-        while (std::getline(file, line))
-        {
-            mapHeight++;
-            mapWidth = line.size();
-        }
+    voxels = LoadCubesFromFile("res/mapVoxels.txt");
+    lights = LoadLightsFromFile("res/mapLights.txt");
+    needsRefresh = true;
 
-        //put the file back to the beginning
-        file.clear();
-        file.seekg(0);
-
-        int xOffset = 0;
-        int zOffset = 0;
-        int startingPosX = -mapWidth / 2;
-        int startingPosZ = -mapHeight / 2;
-        
-        while (std::getline(file, line))
-        {
-            for (int i = 0; i < line.size(); i++)
-            {
-                if (line[i] == '1')
-                {
-                    //wall
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 6, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 4, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 2, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 0, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 1));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                }
-                if (line[i] == '2')
-                {
-                    //box
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                }
-                if (line[i] == '3')
-                {
-                    //box (2 tall)
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -2, startingPosZ + zOffset), 2));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -4, startingPosZ + zOffset), 2));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                }
-                if (line[i] == '4')
-                {
-                    //floor
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                }
-                if (line[i] == '5')
-                {
-                    //floor
-                    voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, -6, startingPosZ + zOffset), 0));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-                    camera.lastPosition = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
-                    camera.position = glm::vec3(startingPosX + xOffset, 3, startingPosZ + zOffset);
-                }
-                
-
-                voxels.push_back(Cube(glm::vec3(startingPosX + xOffset, 8, startingPosZ + zOffset), 0));
-                    voxels[voxels.size()-1].index = voxels.size()-1;
-
-                xOffset++;
-                xOffset++;
-            }
-            xOffset = 0;
-            zOffset++;
-            zOffset++;
-            
-        }
-    }
-    else
-    {
-        std::cout << "FAILED to open map.txt" << std::endl;
-    }
-
-    
-
-    std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
 #pragma endregion MAPSETUP
 
 #pragma region GLINIT
-    const unsigned int AMOUNT_OF_INDICES = voxels[0].indices.size();
-    const unsigned int FULL_STRIDE  = STRIDE * AMOUNT_OF_INDICES * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+    const unsigned int AMOUNT_OF_INDICES = 36;
+    const unsigned int FULL_STRIDE = STRIDE * AMOUNT_OF_INDICES * VertexBufferElement::GetSizeOfType(GL_FLOAT);
     int indicesCount = voxels.size() * AMOUNT_OF_INDICES;
-    unsigned int* indicesAfter = new unsigned int[indicesCount];
+    unsigned int *indicesAfter = new unsigned int[indicesCount];
     for (int i = 0; i < voxels.size(); i++)
     {
         for (int j = 0; j < voxels[i].indices.size(); j++)
         {
-            indicesAfter [i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
+            indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
         }
     }
 
-    //this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number of indices in our cube)
-    float* positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
+    if (PRINTLOG)
+        std::cout << "Math for buffers done, creating vectors!" << std::endl;
+
+    // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number of
+    // indices in our cube)
+    float *positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
     for (int i = 0; i < voxels.size(); i++)
     {
+        voxels[i].collider.setSize(voxels[i].scale);
+        voxels[i].collider.setPosition(voxels[i].position);
         for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
         {
-            positions [i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
+            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
 
             if (j % STRIDE == 0)
             {
@@ -526,17 +615,20 @@ int main()
         }
     }
 
-    if (!glfwInit()) 
+    if (PRINTLOG)
+        std::cout << "Initialising GLFW and GL3W..." << std::endl;
+
+    if (!glfwInit())
     {
         std::cerr << "FAILED to initialize GLFW\n";
         return -1;
     }
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(width, height, "DDGL", NULL, NULL);
-    if (!window) 
+    GLFWwindow *window = glfwCreateWindow(width, height, "DDGL", NULL, NULL);
+    if (!window)
     {
         std::cerr << "FAILED to create window\n";
         glfwTerminate();
@@ -545,33 +637,33 @@ int main()
     glfwMakeContextCurrent(window);
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
-    if (glewInit() != GLEW_OK) 
+    if (glewInit() != GLEW_OK)
     {
         std::cerr << "FAILED to initialize GLEW\n";
     }
 
-    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GLCall(glEnable(GL_BLEND));
-    GLCall(glEnable(GL_DEPTH_TEST));
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 
     unsigned int vao;
-    GLCall(glGenVertexArrays(1, &vao));
-    GLCall(glBindVertexArray(vao));
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 #pragma endregion GLINIT
 
-
-    //this is the size of each tri's info (5, 3 for position, 2 for texture coordinates) * 36 (number of indices in our cube)
+    // this is the size of each tri's info (5, 3 for position, 2 for texture coordinates) * 36 (number of indices in our
+    // cube)
     int positionCount = STRIDE * AMOUNT_OF_INDICES * voxels.size();
     VertexArray va;
     VertexBuffer vb(positions, voxels.size() * FULL_STRIDE);
     VertexBufferLayout layout;
-    layout.Push(GL_FLOAT, 3); //position
-    layout.Push(GL_FLOAT, 2); //texture coordinates
-    layout.Push(GL_FLOAT, 1); //textureID
-    layout.Push(GL_FLOAT, 3); //normal
-    layout.Push(GL_FLOAT, 1); //cubeLookingAt
-    va.AddBuffer(vb,layout);
-    IndexBuffer ib(indicesAfter,indicesCount);
+    layout.Push(GL_FLOAT, 3); // position
+    layout.Push(GL_FLOAT, 2); // texture coordinates
+    layout.Push(GL_FLOAT, 1); // textureID
+    layout.Push(GL_FLOAT, 3); // normal
+    layout.Push(GL_FLOAT, 1); // cubeLookingAt
+    va.AddBuffer(vb, layout);
+    IndexBuffer ib(indicesAfter, indicesCount);
 
 #pragma region GLINIT2
 
@@ -580,52 +672,47 @@ int main()
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 mvp = proj * view * model;
 
-    std::cout << "Voxels generated! Creating shaders..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "Voxels generated! Creating shaders..." << std::endl;
     Shader shader("res/shaders/Basic.shader");
 
     shader.Bind();
     shader.SetUniformMat4f("u_MVP", mvp);
-    std::cout << "Bound shaders successfully! Binding textures to GPU...\n";
-    
-    Texture u_TextureBrick1("res/textures/brick.png");
-    Texture u_TextureBrick2("res/textures/brick2.png");
-    Texture u_TextureBrick3("res/textures/brick3.png");
-    Texture u_TextureBrick4("res/textures/brick4.png");
+    if (PRINTLOG)
+        std::cout << "Bound shaders successfully! Binding textures to GPU...\n";
 
-    u_TextureBrick1.Bind(0);
-    u_TextureBrick2.Bind(1);
-    u_TextureBrick3.Bind(2);
-    u_TextureBrick4.Bind(3);
+    Texture u_TextureAtlas("res/textures/atlas.png");
+
+    u_TextureAtlas.Bind(0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    std::cout << "Textures bound! Setting texture uniforms..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "Textures bound! Setting texture uniforms..." << std::endl;
 
-    shader.SetUniform1i("u_TextureBrick1", 0);
-    shader.SetUniform1i("u_TextureBrick2", 1);
-    shader.SetUniform1i("u_TextureBrick3", 2);
-    shader.SetUniform1i("u_TextureBrick4", 3);
+    shader.SetUniform1i("u_TextureAtlas", 0);
 
     va.Unbind();
     vb.Unbind();
     ib.Unbind();
     shader.Unbind();
 
-    std::cout << "Texture uniforms created! Creating RENDERER..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "Texture uniforms created! Creating RENDERER..." << std::endl;
 
     Renderer renderer;
 
-    std::cout << "RENDERER created! Initializing IMGUI..." << std::endl;
+    if (PRINTLOG)
+        std::cout << "RENDERER created! Initializing IMGUI..." << std::endl;
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
     ImGui::StyleColorsDark();
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
     io.DisplaySize.x = static_cast<float>(display_w);
     io.DisplaySize.y = static_cast<float>(display_h);
-
 
     float dt = 0.0f;
     float lastFrame = 0.0f;
@@ -633,405 +720,1286 @@ int main()
     bool paused = false;
     shader.Bind();
 
-    std::cout << "SETUP complete!" << std::endl;
+    if (PRINTLOG)
+        std::cout << "SETUP complete!" << std::endl;
 
-    std::vector<Cube*> voxelsCloseToPlayer;
-    Cube* cubeLookingAt = nullptr;
+    std::vector<Cube *> voxelsCloseToPlayer;
+    Cube *cubeLookingAt = nullptr;
 
 #pragma endregion GLINIT2
 
+    /*glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);*/
+
 #pragma endregion INITIALIZATION
-    
-    while (!glfwWindowShouldClose(window)) 
+
+    while (!glfwWindowShouldClose(window))
     {
-        //SetPosition(positions, 0, sunPosition, STRIDE);
-        
-        //lock to 60fps
-        auto frameStart = std::chrono::steady_clock::now();
-        float distToCube = 99999999;
-        
-        if (needsRefresh)
+        if (PRINTLOOPLOG)
+            std::cout << "checking lights..." << std::endl;
+        for (int i = 0; i < lights.size(); i++)
         {
-            needsRefresh = false;
-            indicesCount = voxels.size() * AMOUNT_OF_INDICES;
-            indicesAfter = new unsigned int[indicesCount];
-            for (int i = 0; i < voxels.size(); i++)
-            {
-                for (int j = 0; j < voxels[i].indices.size(); j++)
-                {
-                    indicesAfter [i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
-                }
-                voxels[i].index = i;
-            }
-
-            //this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number of indices in our cube)
-            positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
-            for (int i = 0; i < voxels.size(); i++)
-            {
-                for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
-                {
-                    positions [i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
-
-                    if (j % STRIDE == 0)
-                    {
-                        positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.x;
-                    }
-                    else if (j % STRIDE == 1)
-                    {
-                        positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.y;
-                    }
-                    else if (j % STRIDE == 2)
-                    {
-                        positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                    }
-                }
-            }
-
-            va.Unbind();
-            vb.Unbind();
-            ib.Unbind();
-
-            vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
-            va.AddBuffer(vb, layout);
-            ib.UpdateBuffer(indicesAfter, indicesCount);
-
-            va.Bind();
-            vb.Bind();
-            ib.Bind();
+            lights[i]->position.x = (int)lights[i]->position.x;
+            lights[i]->position.y = (int)lights[i]->position.y;
+            lights[i]->position.z = (int)lights[i]->position.z;
         }
 
-        vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
-        va.UpdateBuffer(vb, layout);
-
-        
-#pragma region KEYPRESSES
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            paused = true;
-            mouseControl = true;
-        }
-
-        // if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
-        // {
-        //     sunPosition.z += 0.1f;
-        // }
-        // if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
-        // {
-        //     sunPosition.z -= 0.1f;
-        // }
-        // if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
-        // {
-        //     sunPosition.x += 0.1f;
-        // }
-        // if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
-        // {
-        //     sunPosition.x -= 0.1f;
-        // }
-        // if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
-        // {
-        //     sunPosition.y += 0.1f;
-        // }
-        // if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS)
-        // {
-        //     sunPosition.y -= 0.1f;
-        // }
-#pragma endregion KEYPRESSES
-        
-#pragma region MVP
-        ImGui_ImplOpenGL3_NewFrame();
+        if (PRINTLOOPLOG)
+            std::cout << "checking frame times..." << std::endl;
+        double currentTime = glfwGetTime();
+        double frameDuration = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
         currentFrame = glfwGetTime();
         dt = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        glfwSwapInterval(1);
-        renderer.Clear();
-        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        double targetFrameDuration = 1.0 / 60.0;
+        double timeLeftForNextFrame = targetFrameDuration - frameDuration;
+        auto frameStart = std::chrono::steady_clock::now();
+        float distToCube = 99999999;
+        if (PRINTLOOPLOG)
+            std::cout << "starting rendering..." << std::endl;
+        if (timeLeftForNextFrame > 0.0)
+        {
 
-        glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
-        glm::mat4 view = camera.getViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 mvp = proj * view * model;
-        shader.SetUniformMat4f("u_MVP", mvp);
-        int numLights = lights.size();
+            if (needsRefresh)
+            {
+                if (PRINTLOOPLOG)
+                    std::cout << "refreshing map..." << std::endl;
+                needsRefresh = false;
+                indicesCount = voxels.size() * AMOUNT_OF_INDICES;
+                indicesAfter = new unsigned int[indicesCount];
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    for (int j = 0; j < voxels[i].indices.size(); j++)
+                    {
+                        indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
+                    }
+                    voxels[i].index = i;
+                }
 
-        for (int i = 0; i < numLights; i++) {
-            shader.SetUniform3f(("lightPos[" + std::to_string(i) + "]").c_str(), lights[i]->position.x, lights[i]->position.y, lights[i]->position.z);
-            shader.SetUniform4f(("lightColor[" + std::to_string(i) + "]").c_str(), lights[i]->rgba.x, lights[i]->rgba.y, lights[i]->rgba.z, lights[i]->rgba.w);
-        
-            lights[i]->Update();
-        }
-        shader.SetUniform1i("numLights", numLights);
-        renderer.Draw(va, ib, shader);
+                std::vector<float> scales;
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    scales.push_back(voxels[i].scale.x);
+                    scales.push_back(voxels[i].scale.y);
+                    scales.push_back(voxels[i].scale.z);
+                }
+
+                // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36
+                // (number of indices in our cube)
+                positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
+                    {
+                        positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
+                        if (j == 0)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 1)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 2)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 10)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 11)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 12)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 20)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 21)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 22)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 30)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 31)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 32)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 40)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 41)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 42)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 50)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 51)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 52)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 60)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 61)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 62)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 70)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 71)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 72)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 80)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 81)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 82)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 90)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 91)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 92)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 100)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 101)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 102)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 110)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 111)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 112)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 120)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 121)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 122)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 130)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 131)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 132)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 140)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 141)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 142)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 150)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 151)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 152)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 160)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 161)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 162)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 170)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 171)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 172)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 180)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 181)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 182)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 190)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 191)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 192)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 200)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 201)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 202)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 210)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 211)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 212)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 220)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 221)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 222)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j == 230)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+                        if (j == 231)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+                        if (j == 232)
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+                        if (j % STRIDE == 0) // x
+                        {
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.x;
+                        }
+                        else if (j % STRIDE == 1) // y
+                        {
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.y;
+                        }
+                        else if (j % STRIDE == 2) // z
+                        {
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        }
+                        // else if (j % STRIDE == 3) //u
+                        //{
+                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        // }
+                        // else if (j % STRIDE == 4) //v
+                        //{
+                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        // }
+                        else if (j % STRIDE == 5) // textureID
+                        {
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].textureIndex;
+                        }
+                        // else if (j % STRIDE == 6) //normal.x
+                        //{
+                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        // }
+                        // else if (j % STRIDE == 7) //normal.y
+                        //{
+                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        // }
+                        // else if (j % STRIDE == 8) //normal.z
+                        //{
+                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+                        //}
+                        else if (j % STRIDE == 9) // invisible
+                        {
+                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].invisible;
+                        }
+                    }
+                }
+
+                va.Unbind();
+                vb.Unbind();
+                ib.Unbind();
+
+                vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
+                va.AddBuffer(vb, layout);
+                ib.UpdateBuffer(indicesAfter, indicesCount);
+
+                va.Bind();
+                vb.Bind();
+                ib.Bind();
+                if (PRINTLOOPLOG)
+                    std::cout << "done refreshing map!" << std::endl;
+            }
+
+#pragma region KEYPRESSES
+            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            {
+                paused = true;
+                mouseControl = true;
+            }
+
+#pragma endregion KEYPRESSES
+
+            if (PRINTLOOPLOG)
+                std::cout << "doing matrix transformations..." << std::endl;
+#pragma region MVP
+            ImGui_ImplOpenGL3_NewFrame();
+            glfwSwapInterval(1);
+            renderer.Clear();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 1000.0f);
+            glm::mat4 view = camera.getViewMatrix();
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::mat4 mvp = proj * view * model;
+            shader.SetUniformMat4f("u_MVP", mvp);
+            int numLights = lights.size();
+
+            for (int i = 0; i < numLights; i++)
+            {
+                shader.SetUniform3f(("lightPos[" + std::to_string(i) + "]").c_str(), lights[i]->position.x,
+                                    lights[i]->position.y, lights[i]->position.z);
+                shader.SetUniform4f(("lightColor[" + std::to_string(i) + "]").c_str(), lights[i]->rgba.x,
+                                    lights[i]->rgba.y, lights[i]->rgba.z, lights[i]->rgba.w);
+                shader.SetUniform1f(("lightBrightness[" + std::to_string(i) + "]").c_str(), lights[i]->brightness);
+
+                lights[i]->Update();
+            }
+            shader.SetUniform1i("numLights", numLights);
+            renderer.Draw(va, ib, shader);
 
 #pragma endregion MVP
-
+            if (PRINTLOOPLOG)
+                std::cout << "done with transformations, handling collision now!" << std::endl;
 #pragma region COLLISION
 
-        voxelsCloseToPlayer.clear();
-        for (int i = 0; i < voxels.size(); i++)
-        {
-            float distance = glm::distance(camera.position, voxels[i].position);
-            if (distance < 15 && distance > -15)
+            voxelsCloseToPlayer.clear();
+            if (PRINTLOOPLOG)
+                std::cout << "setting up 'near player' vector" << std::endl;
+            for (int i = 0; i < voxels.size(); i++)
             {
+                /*float distance = glm::distance(camera.position, voxels[i].position);
+                if (distance < 10 && distance > -10)
+                {
+                    voxelsCloseToPlayer.push_back(&voxels[i]);
+                    voxelsCloseToPlayer[voxelsCloseToPlayer.size() - 1]->collider = voxels[i].collider;
+                }*/
+
                 voxelsCloseToPlayer.push_back(&voxels[i]);
+                voxelsCloseToPlayer[voxelsCloseToPlayer.size() - 1]->collider = voxels[i].collider;
             }
-        }
-        bool onGround = false;
+            bool onGround = false;
+            if (PRINTLOOPLOG)
+                std::cout << "updating camera" << std::endl;
+            camera.Update(window, dt, mouseControl);
+            camera.collider.setPosition(camera.position + glm::vec3(0, -4, 0));
 
-        camera.Update(window, dt, mouseControl);
-        camera.collider.setPosition(camera.position + glm::vec3(0,-4,0));
+            camera.pointXMinusColliding = false;
+            camera.pointXPlusColliding = false;
+            camera.pointZMinusColliding = false;
+            camera.pointZPlusColliding = false;
+            if (PRINTLOOPLOG)
+                std::cout << "handling points to check" << std::endl;
+            std::vector<glm::vec3> pointsToCheck;
 
-        camera.pointXMinusColliding = false;
-        camera.pointXPlusColliding = false;
-        camera.pointZMinusColliding = false;
-        camera.pointZPlusColliding = false;
-
-        std::vector<glm::vec3> pointsToCheck;
-
-        for (int j = 0; j < 6; j++)
-        {
-            glm::vec3 pointToCheck = CastPointForward((j+1)*2, camera.GetPosition());
-            pointsToCheck.push_back(pointToCheck);
-            
-        }
-
-        cubeLookingAt = nullptr;
-
-        for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
-        {
-            //check if the camera's collider is colliding with the cube's collider
-            if (camera.collider.CheckCollision(voxelsCloseToPlayer[i]->collider))
+            for (int j = 4; j < 5; j++)
             {
-                glm::vec3 buffer = camera.collider.ResolveCollision(voxelsCloseToPlayer[i]->collider);
-                if (!camera.getOnGround())
+                glm::vec3 pointToCheck = CastPointForward((j + 1) * 2, camera.GetPosition());
+                pointsToCheck.push_back(pointToCheck);
+            }
+
+            if (PRINTLOOPLOG)
+                std::cout << "getting cursor position " << std::endl;
+
+            glm::vec3 cursorPos = CastPointForward(10, camera.GetPosition());
+            cursorPos.x = (int)cursorPos.x;
+            if ((int)cursorPos.x % 2 != 0)
+                cursorPos.x += 1;
+            cursorPos.y = (int)cursorPos.y;
+            if ((int)cursorPos.y % 2 != 0)
+                cursorPos.y += 1;
+            cursorPos.z = (int)cursorPos.z;
+            if ((int)cursorPos.z % 2 != 0)
+                cursorPos.z += 1;
+
+            if (PRINTLOOPLOG)
+                std::cout << "updating 3d cursor" << std::endl;
+
+            if (voxels.size() > 0)
+            {
+                voxels[0].position.x = cursorPos.x;
+                voxels[0].position.y = cursorPos.y;
+                voxels[0].position.z = cursorPos.z;
+            }
+            if (PRINTLOOPLOG)
+                std::cout << "updating vertex buffer" << std::endl;
+            vb.UpdateScale(0, cursorPos, 1, 1, 1, STRIDE);
+
+            if (!paused && !pinned)
+                cubeLookingAt = nullptr;
+
+            if (PRINTLOOPLOG)
+                std::cout << "resolving collisions finally" << std::endl;
+            for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
+            {
+                // check if the camera's collider is colliding with the cube's collider
+                if (voxelsCloseToPlayer[i]->index != 0 && !voxelsCloseToPlayer[i]->invisible &&
+                    camera.collider.CheckCollision(voxels[voxelsCloseToPlayer[i]->index].collider))
+                {
+                    glm::vec3 buffer = camera.collider.ResolveCollision(voxels[voxelsCloseToPlayer[i]->index].collider);
+                    if (!camera.getOnGround())
+                    {
+                        onGround = true;
+                        camera.onGround = true;
+                        camera.isJumping = false;
+                        camera.yVelocity = 0;
+                    }
+                    buffer.x = 0;
+                    buffer.z = 0;
+                    camera.position += buffer;
+                    if (std::floor(camera.position.y) != camera.position.y &&
+                        std::ceil(camera.position.y) != camera.position.y)
+                    {
+                        camera.position.y = glm::round(camera.position.y);
+                    }
+                }
+
+                if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointXPlus))
+                {
+                    camera.pointXPlusColliding = true;
+                }
+                if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointXMinus))
+                {
+                    camera.pointXMinusColliding = true;
+                }
+                if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointZPlus))
+                {
+                    camera.pointZPlusColliding = true;
+                }
+                if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointZMinus))
+                {
+                    camera.pointZMinusColliding = true;
+                }
+
+                bool isChosen = false;
+                for (int j = 0; j < pointsToCheck.size(); j++) // the 6 is how many steps the ray is cast forward
+                {
+                    if (voxelsCloseToPlayer[i]->index != 0 && !voxelsCloseToPlayer[i]->invisible &&
+                        voxelsCloseToPlayer[i]->isPointInside(cursorPos))
+                    {
+                        float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
+                        if (distance < distToCube)
+                        {
+                            distToCube = distance;
+                            cubeLookingAt = voxelsCloseToPlayer[i];
+                        }
+                    }
+                }
+
+                // //check if camera.positionFeet is inside the cube
+                if (!camera.getOnGround() &&
+                    voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet + glm::vec3(0, -.1, 0)))
                 {
                     onGround = true;
-                    camera.onGround = true;
-                    camera.isJumping = false;
-                    camera.yVelocity = 0;
                 }
-                buffer.x = 0;
-                buffer.z = 0;
-                camera.position += buffer;
             }
 
-            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointXPlus))
-            {
-                camera.pointXPlusColliding = true;
-            }
-            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointXMinus))
-            {
-                camera.pointXMinusColliding = true;
-            }
-            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointZPlus))
-            {
-                camera.pointZPlusColliding = true;
-            }
-            if (voxelsCloseToPlayer[i]->isPointInside(camera.pointZMinus))
-            {
-                camera.pointZMinusColliding = true;
-            }
+            // MUST BE RIGHT AFTER COLLISION/CORRECTION VVVVVV
+            camera.target =
+                camera.position + glm::vec3(cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch)),
+                                            sin(glm::radians(camera.pitch)),
+                                            sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch)));
 
-            bool isChosen = false;
-            for (int j = 0; j < 6; j++)
+            float collisionCorrectionSpeed = 0;
+
+            if (camera.velocity.x != 0 || camera.velocity.z != 0)
             {
-                if (voxelsCloseToPlayer[i]->isPointInside(pointsToCheck[j]))
+                if (std::abs(camera.velocity.x) > std::abs(camera.velocity.z))
                 {
-                    float distance = glm::distance(camera.position, voxelsCloseToPlayer[i]->position);
-                    if (distance < distToCube)
+                    collisionCorrectionSpeed = std::abs(camera.velocity.x);
+                }
+                else
+                {
+                    collisionCorrectionSpeed = std::abs(camera.velocity.z);
+                }
+            }
+
+            if (camera.pointXMinusColliding)
+            {
+                camera.position.x += collisionCorrectionSpeed;
+                camera.target.x += collisionCorrectionSpeed;
+            }
+            if (camera.pointXPlusColliding)
+            {
+                camera.position.x -= collisionCorrectionSpeed;
+                camera.target.x -= collisionCorrectionSpeed;
+            }
+            if (camera.pointZMinusColliding)
+            {
+                camera.position.z += collisionCorrectionSpeed;
+                camera.target.z += collisionCorrectionSpeed;
+            }
+            if (camera.pointZPlusColliding)
+            {
+                camera.position.z -= collisionCorrectionSpeed;
+                camera.target.z -= collisionCorrectionSpeed;
+            }
+            if (!onGround)
+            {
+                camera.onGround = false;
+            }
+
+#pragma endregion COLLISION
+
+            if (PRINTLOOPLOG)
+                std::cout << "done with collisions, handling keypresses/mouse input now!" << std::endl;
+            //  if left mouse is pressed
+            if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+            {
+                cooldownForBreak++;
+                if (cooldownForBreak > 5)
+                {
+                    if (cubeLookingAt != nullptr)
                     {
-                        distToCube = distance;
-                        cubeLookingAt = voxelsCloseToPlayer[i];
-                        isChosen = true;
+                        if (cubeLookingAt->index >= 0 && cubeLookingAt->index < voxels.size())
+                        {
+                            voxels.erase(voxels.begin() + cubeLookingAt->index);
+                        }
+                        else
+                        {
+                            std::cerr << "Index " << cubeLookingAt->index << " out of range" << std::endl;
+                        }
+                        for (int i = 0; i < voxels.size(); i++)
+                        {
+                            voxels[i].index = i;
+                        }
+
+                        needsRefresh = true;
+                        /*cubeLookingAt->SetInvisible();
+                        voxels[cubeLookingAt->index].invisible = true;
+                        vb.UpdateChosen((cubeLookingAt->index), 1, STRIDE);*/
+                    }
+
+                    int vx = (int)voxels[0].position.x;
+                    int vy = (int)voxels[0].position.y;
+                    int vz = (int)voxels[0].position.z;
+
+                    for (int i = 0; i < lights.size(); i++)
+                    {
+                        int x = (int)lights[i]->position.x;
+                        int y = (int)lights[i]->position.y;
+                        int z = (int)lights[i]->position.z;
+                        if (vx == x && vy == y && vz == z)
+                        {
+                            lights.erase(lights.begin() + i);
+                            needsRefresh = true;
+                        }
+                    }
+                    cooldownForBreak = 0;
+                }
+            }
+
+            if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+            {
+                cooldownForBreak++;
+                if (cooldownForBreak > 5)
+                {
+                    glm::vec3 positionToCheck =
+                        glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z);
+
+                    bool found = false;
+
+                    for (int i = 1; i < voxels.size(); i++)
+                    {
+                        if (voxels[i].position == positionToCheck)
+                            found = true;
+                    }
+
+                    if (!found)
+
+                    {
+                        if (chosenTextureID != 99)
+                        {
+                            voxels.push_back(
+                                Cube(glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z),
+                                     (chosenTextureID), 0));
+                            voxels[voxels.size() - 1].index = voxels.size() - 1;
+                            needsRefresh = true;
+                        }
+                        else
+                        {
+                            bool foundLight = false;
+                            for (int i = 0; i < lights.size(); i++)
+                            {
+                                lights[i]->position.x = std::round(lights[i]->position.x);
+                                lights[i]->position.y = std::round(lights[i]->position.y);
+                                lights[i]->position.z = std::round(lights[i]->position.z);
+                                if (lights[i]->position.x == voxels[0].position.x &&
+                                    lights[i]->position.y == voxels[0].position.y &&
+                                    lights[i]->position.z == voxels[0].position.z)
+                                    foundLight = true;
+                            }
+
+                            if (!foundLight && lights.size() < 256)
+                            {
+
+                                lights.push_back(new Light(glm::vec3(
+                                    (int)voxels[0].position.x, (int)voxels[0].position.y, (int)voxels[0].position.z)));
+                                voxels.push_back(Cube(
+                                    glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z),
+                                    chosenTextureID, 0));
+                                voxels[voxels.size() - 1].index = voxels.size() - 1;
+                                needsRefresh = true;
+                            }
+                        }
+                    }
+
+                    /*float cornerPositions[240];
+                    std::memcpy(cornerPositions, voxels[voxels.size() - 1].cornerPositions, 240 * sizeof(float));
+                    vb.AddVoxel(voxels[voxels.size() - 1].index, voxels.size(), STRIDE, cornerPositions);*/
+                }
+            }
+
+            if (!paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
+                glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+            {
+                for (int i = 1; i < voxels.size(); i++)
+                {
+                    if (voxels[i].position == voxels[0].position)
+                    {
+                        chosenTextureID = voxels[i].textureIndex;
                     }
                 }
             }
 
-            
-                SetChosen(positions,voxelsCloseToPlayer[i]->index,1.f,STRIDE);
-            
-            
-            
-
-            // //check if camera.positionFeet is inside the cube
-            if (!camera.getOnGround() && voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet + glm::vec3(0,-1,0)))
+            if (!paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
+                glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
             {
-                onGround = true;
-            }
-        }
-
-        //MUST BE RIGHT AFTER COLLISION/CORRECTION VVVVVV
-        camera.target = camera.position + glm::vec3(
-            cos(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch)),
-            sin(glm::radians(camera.pitch)),
-            sin(glm::radians(camera.yaw)) * cos(glm::radians(camera.pitch))
-        );
-
-        float collisionCorrectionSpeed = 0;
-
-        if (camera.velocity.x != 0 || camera.velocity.z != 0)
-        {
-            if (std::abs(camera.velocity.x) > std::abs(camera.velocity.z))
-            {
-                collisionCorrectionSpeed = std::abs(camera.velocity.x);
-            }
-            else
-            {
-                collisionCorrectionSpeed = std::abs(camera.velocity.z);
-            }
-        }
-
-        if (camera.pointXMinusColliding)
-        {
-            camera.position.x += collisionCorrectionSpeed;
-            camera.target.x += collisionCorrectionSpeed;
-        }
-        if (camera.pointXPlusColliding)
-        {
-            camera.position.x -= collisionCorrectionSpeed;
-            camera.target.x -= collisionCorrectionSpeed;
-        }
-        if (camera.pointZMinusColliding)
-        {
-            camera.position.z += collisionCorrectionSpeed;
-            camera.target.z += collisionCorrectionSpeed;
-        }
-        if (camera.pointZPlusColliding)
-        {
-            camera.position.z -= collisionCorrectionSpeed;
-            camera.target.z -= collisionCorrectionSpeed;
-        }
-        if (!onGround)
-        {
-            camera.onGround = false;
-        }
-
-#pragma endregion COLLISION
-
-        //if left mouse is pressed
-        if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-        {
-            cooldownForBreak++;
-            if (cooldownForBreak > 5)
-            {
-                if (cubeLookingAt != nullptr)
+                for (int i = 1; i < voxels.size(); i++)
                 {
-                    voxels.erase(std::remove_if(voxels.begin(), voxels.end(), [cubeLookingAt](const Cube& voxel) {
-                        return &voxel == cubeLookingAt;
-                    }), voxels.end());
-                    needsRefresh = true;
+                    if (voxels[i].position == voxels[0].position)
+                    {
+                        voxels[i].textureIndex = chosenTextureID;
+                        vb.UpdateTexture(i, chosenTextureID, STRIDE);
+                    }
                 }
-                cooldownForBreak = 0;
             }
-        }
 
-
+            if (PRINTLOOPLOG)
+                std::cout << "starting IMGUI rendering!" << std::endl;
 #pragma region IMGUI
 
-        ImGui::NewFrame();
+            ImGui::NewFrame();
 
-        ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Camera Position: (%f, %f, %f)", camera.position.x, camera.position.y, camera.position.z);
-        ImGui::Text("Yaw: %f", camera.yaw);
-        ImGui::Text("Pitch: %f", camera.pitch);
-        ImGui::Text("Roll: %f", camera.roll);
-        ImGui::Text("isMouseAllowed?: %s", mouseControl ? "True" : "False");
-        ImGui::Text("OnGround?: %s", onGround ? "True" : "False");
-        ImGui::Text("IsJumping?: %s", camera.isJumping ? "True" : "False");
-        ImGui::Text("YVelocity: %f", camera.yVelocity);
-        ImGui::End();
+            ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
-        ImGui::Begin(" ", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("voxels: %lu", voxels.size());
-        ImGui::Text("Indices: %d", indicesCount);
-        ImGui::Text("Triangles: %lu", voxels.size()*12);
-        ImGui::End();
-
-        if (cubeLookingAt != nullptr)
-        {
-            ImGui::Begin("CubeLookingAt", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Position: (%f, %f, %f)", cubeLookingAt->position.x, cubeLookingAt->position.y, cubeLookingAt->position.z);
-            ImGui::Text("isChosen: %f", positions[cubeLookingAt->index*10+9]);
-            ImGui::End();
-
-            
-        }
-        
-        
-        if (camera.position.y < -10)
-        {
-            camera.position = camera.lastPosition;
-            camera.yVelocity = 0;
-        }
-
-        if (paused)
-        {
-            ImGui::Begin("PAUSED", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            //set font size to 20
-            ImGui::SetWindowFontScale(2.0f);
-            //set window position to center
-            ImGui::SetWindowPos(ImVec2(width / 2 - 100, height / 2 - 100));
-
+            // Title
+            ImGui::Text("Camera Information");
+            ImGui::Separator();
             ImGui::Spacing();
             ImGui::Spacing();
-            
-            if (ImGui::Button("Resume Program")) 
+
+            // Position
+            ImGui::Text("Position:");
+            ImGui::Text("  X: %d", (int)camera.position.x);
+            ImGui::Text("  Y: %d", (int)camera.position.y);
+            ImGui::Text("  Z: %d", (int)camera.position.z);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Orientation
+            ImGui::Text("Orientation:");
+            ImGui::Text("  Yaw: %d", (int)camera.yaw);
+            ImGui::Text("  Pitch: %d", (int)camera.pitch);
+            ImGui::Text("  Roll: %d", (int)camera.roll);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Flags
+            ImGui::Text("Status Flags:");
+            ImGui::Text("  Mouse Control: %s", mouseControl ? "True" : "False");
+            ImGui::Text("  On Ground: %s", onGround ? "True" : "False");
+            ImGui::Text("  Jumping: %s", camera.isJumping ? "True" : "False");
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Velocity
+            ImGui::Text("Velocity:");
+            ImGui::Text("  Y Velocity: %.1f", camera.yVelocity);
+            ImGui::Spacing();
+
+            // Flying Checkbox
+            if (ImGui::Checkbox("Flying?", &camera.isFlying))
             {
-                paused = false;
-                mouseControl = false;
+                // Handle the change in flying status
             }
 
-            ImGui::Spacing();
+            // End window
+            ImGui::End();
 
-            if (ImGui::Button("UNSTUCK")) 
+            ImGui::Begin(" ", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("voxels: %lu", voxels.size());
+            ImGui::Text("Indices: %d", indicesCount);
+            ImGui::Text("Triangles: %lu", voxels.size() * 12);
+            ImGui::Text("Lights: %lu", lights.size());
+            ImGui::End();
+
+            ImGui::Begin("FPS", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+
+            // Calculate and display FPS
+            static float fps = 0.0f;
+            static float lastFrameTime = 0.0f;
+
+            const float now = glfwGetTime(); // Assuming you're using GLFW
+            fps = 1.0f / (now - lastFrameTime);
+            lastFrameTime = now;
+
+            ImGui::Text("FPS: %.1f", fps);
+
+            ImGui::End();
+
+            if (cubeLookingAt != nullptr)
             {
-                camera.position = glm::vec3(0, 3.0f, 0);
+
+                ImGui::Begin("CubeLookingAt", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+                if (ImGui::Checkbox("Pin", &pinned))
+                {
+                    // yes
+                }
+                ImGui::SameLine();
+                ImGui::Text("VOXEL %d", cubeLookingAt->index);
+
+                ImGui::Spacing();
+
+                ImGui::Text("ColliderScale:               (%d,   %d,   %d)", (int)cubeLookingAt->collider.size.x,
+                            (int)cubeLookingAt->collider.size.y, (int)cubeLookingAt->collider.size.z);
+
+                ImGui::Spacing();
+                ImGui::Text("Position:                    (%d,   %d,   %d)", (int)cubeLookingAt->position.x,
+                            (int)cubeLookingAt->position.y, (int)cubeLookingAt->position.z);
+                ImGui::Text("Scale   :                    (%.1f, %.1f, %.1f)", cubeLookingAt->scale.x,
+                            cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                ImGui::Spacing();
+
+                // Add sliders for scale
+                float xScale = cubeLookingAt->scale.x;
+                float yScale = cubeLookingAt->scale.y;
+                float zScale = cubeLookingAt->scale.z;
+
+                if (ImGui::Button("<##ScaleX"))
+                {
+                    if (xScale > 0.5f)
+                    {
+                        xScale -= 0.5f;
+                        cubeLookingAt->scale.x = xScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
+                                       zScale, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragFloat("Scale X", &xScale, 0.5f, 0.5f, 50.0f))
+                {
+                    cubeLookingAt->scale.x = xScale;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
+                                   zScale, STRIDE);
+                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                    cubeLookingAt->collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##ScaleX"))
+                {
+                    if (xScale < 50.0f)
+                    {
+                        xScale += 0.5f;
+                        cubeLookingAt->scale.x = xScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
+                                       zScale, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+
+                if (ImGui::Button("<##ScaleY"))
+                {
+                    if (yScale > 0.5f)
+                    {
+                        yScale -= 0.5f;
+                        cubeLookingAt->scale.y = yScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
+                                       zScale, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragFloat("Scale Y", &yScale, 0.5f, 0.5f, 50.0f))
+                {
+                    cubeLookingAt->scale.y = yScale;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
+                                   zScale, STRIDE);
+                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                    cubeLookingAt->collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##ScaleY"))
+                {
+                    if (yScale < 50.0f)
+                    {
+                        yScale += 0.5f;
+                        cubeLookingAt->scale.y = yScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
+                                       zScale, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+
+                if (ImGui::Button("<##ScaleZ"))
+                {
+                    if (zScale > 0.5f)
+                    {
+                        zScale -= 0.5f;
+                        cubeLookingAt->scale.z = zScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
+                                       cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragFloat("Scale Z", &zScale, 0.5f, 0.5f, 50.0f))
+                {
+                    cubeLookingAt->scale.z = zScale;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
+                                   cubeLookingAt->scale.z, STRIDE);
+                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                    cubeLookingAt->collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##ScaleZ"))
+                {
+                    if (zScale < 50.0f)
+                    {
+                        zScale += 0.5f;
+                        cubeLookingAt->scale.z = zScale;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
+                                       cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                        glm::vec3 colliderScale =
+                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                    }
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                int xPos = cubeLookingAt->position.x;
+                int yPos = cubeLookingAt->position.y;
+                int zPos = cubeLookingAt->position.z;
+
+                int textureIDs = cubeLookingAt->textureIndex;
+
+                const int sliderCenter = 0;      // Center value for the slider
+                int sliderValueX = sliderCenter; // Initial value set to center
+                int sliderValueY = sliderCenter; // Initial value set to center
+                int sliderValueZ = sliderCenter;
+                int sliderValueX2 = cubeLookingAt->textureIndex; // Initial value set to center
+
+                if (ImGui::Button("<##PositionX"))
+                {
+                    if (xPos > 1)
+                    {
+                        xPos--;
+                        cubeLookingAt->position.x = xPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragInt("  Pos X", &sliderValueX, 2.0f, -2, 2))
+                {
+                    cubeLookingAt->position.x += sliderValueX;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                   cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                    voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    sliderValueX = sliderCenter; // Reset to center
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##PositionX"))
+                {
+                    if (xPos < 98)
+                    {
+                        xPos++;
+                        cubeLookingAt->position.x = xPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+
+                if (ImGui::Button("<##PositionY"))
+                {
+                    if (yPos > 1)
+                    {
+                        yPos--;
+                        cubeLookingAt->position.y = yPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragInt("  Pos Y", &sliderValueY, 2.0f, -2, 2))
+                {
+                    cubeLookingAt->position.y += sliderValueY;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                   cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                    voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    sliderValueY = sliderCenter; // Reset to center
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##PositionY"))
+                {
+                    if (yPos < 98)
+                    {
+                        yPos++;
+                        cubeLookingAt->position.y = yPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+
+                if (ImGui::Button("<##PositionZ"))
+                {
+                    if (zPos > 1)
+                    {
+                        zPos--;
+                        cubeLookingAt->position.z = zPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::DragInt("  Pos Z", &sliderValueZ, 2.0f, -2, 2))
+                {
+                    cubeLookingAt->position.z += sliderValueZ;
+                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                   cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                    voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    sliderValueZ = sliderCenter; // Reset to center
+                    glm::vec3 colliderScale =
+                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##PositionZ"))
+                {
+                    if (zPos < 98)
+                    {
+                        zPos++;
+                        cubeLookingAt->position.z = zPos;
+                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                       cubeLookingAt->scale.y, cubeLookingAt->scale.z, STRIDE);
+                        voxels[cubeLookingAt->index].collider.setPosition(cubeLookingAt->position);
+                    }
+                }
+
+                int minTextureIndex = 0;
+                int maxTextureIndex = 99;
+
+                if (ImGui::Button("<##Texture"))
+                {
+                    if (sliderValueX2 > minTextureIndex)
+                    {
+                        sliderValueX2--;
+                        cubeLookingAt->textureIndex = sliderValueX2;
+                        vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
+                        chosenTextureID = sliderValueX2;
+                        voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+
+                        if (sliderValueX2 == 99)
+                        {
+                            bool foundLight = false;
+                            for (int i = 0; i < lights.size(); i++)
+                            {
+                                lights[i]->position.x = std::round(lights[i]->position.x);
+                                lights[i]->position.y = std::round(lights[i]->position.y);
+                                lights[i]->position.z = std::round(lights[i]->position.z);
+                                if (lights[i]->position.x == voxels[0].position.x &&
+                                    lights[i]->position.y == voxels[0].position.y &&
+                                    lights[i]->position.z == voxels[0].position.z)
+                                    foundLight = true;
+                            }
+
+                            if (!foundLight && lights.size() < 256)
+                            {
+
+                                lights.push_back(new Light(glm::vec3(
+                                    (int)voxels[0].position.x, (int)voxels[0].position.y, (int)voxels[0].position.z)));
+                                voxels.push_back(Cube(
+                                    glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z),
+                                    chosenTextureID, 0));
+                                voxels[voxels.size() - 1].index = voxels.size() - 1;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < lights.size(); i++)
+                            {
+                                if (cubeLookingAt->position == lights[i]->position)
+                                {
+                                    lights.erase(lights.begin() + i);
+                                }
+                            }
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::SliderInt("TEXTURE", &sliderValueX2, minTextureIndex, maxTextureIndex))
+                {
+                    cubeLookingAt->textureIndex = sliderValueX2;
+                    vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
+                    chosenTextureID = sliderValueX2;
+                    voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+
+                    if (sliderValueX2 == 99)
+                    {
+                        bool foundLight = false;
+                        for (int i = 0; i < lights.size(); i++)
+                        {
+                            lights[i]->position.x = (int)std::round(lights[i]->position.x);
+                            lights[i]->position.y = (int)std::round(lights[i]->position.y);
+                            lights[i]->position.z = (int)std::round(lights[i]->position.z);
+                            if (lights[i]->position.x == voxels[0].position.x &&
+                                lights[i]->position.y == voxels[0].position.y &&
+                                lights[i]->position.z == voxels[0].position.z)
+                                foundLight = true;
+                        }
+
+                        if (!foundLight && lights.size() < 256)
+                        {
+
+                            lights.push_back(new Light(glm::vec3((int)voxels[0].position.x, (int)voxels[0].position.y,
+                                                                 (int)voxels[0].position.z)));
+                            voxels.push_back(
+                                Cube(glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z),
+                                     chosenTextureID, 0));
+                            voxels[voxels.size() - 1].index = voxels.size() - 1;
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < lights.size(); i++)
+                        {
+                            if (cubeLookingAt->position == lights[i]->position)
+                            {
+                                lights.erase(lights.begin() + i);
+                            }
+                        }
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(">##Texture"))
+                {
+                    if (sliderValueX2 < maxTextureIndex)
+                    {
+                        sliderValueX2++;
+                        cubeLookingAt->textureIndex = sliderValueX2;
+                        vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
+                        chosenTextureID = sliderValueX2;
+                        voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+
+                        if (sliderValueX2 == 99)
+                        {
+                            bool foundLight = false;
+                            for (int i = 0; i < lights.size(); i++)
+                            {
+                                lights[i]->position.x = std::round(lights[i]->position.x);
+                                lights[i]->position.y = std::round(lights[i]->position.y);
+                                lights[i]->position.z = std::round(lights[i]->position.z);
+                                if (lights[i]->position.x == voxels[0].position.x &&
+                                    lights[i]->position.y == voxels[0].position.y &&
+                                    lights[i]->position.z == voxels[0].position.z)
+                                    foundLight = true;
+                            }
+
+                            if (!foundLight && lights.size() < 256)
+                            {
+
+                                lights.push_back(new Light(glm::vec3(
+                                    (int)voxels[0].position.x, (int)voxels[0].position.y, (int)voxels[0].position.z)));
+                                voxels.push_back(Cube(
+                                    glm::vec3((int)voxels[0].position.x, voxels[0].position.y, voxels[0].position.z),
+                                    chosenTextureID, 0));
+                                voxels[voxels.size() - 1].index = voxels.size() - 1;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < lights.size(); i++)
+                            {
+                                if (cubeLookingAt->position == lights[i]->position)
+                                {
+                                    lights.erase(lights.begin() + i);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ImGuiIO &io = ImGui::GetIO();
+                if (io.MouseWheel > 0)
+                {
+                    if (sliderValueX2 < maxTextureIndex)
+                    {
+                        sliderValueX2++;
+                        cubeLookingAt->textureIndex = sliderValueX2;
+                        vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
+                        chosenTextureID = sliderValueX2;
+                        voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+                    }
+                }
+                else if (io.MouseWheel < 0)
+                {
+                    if (sliderValueX2 > minTextureIndex)
+                    {
+                        sliderValueX2--;
+                        cubeLookingAt->textureIndex = sliderValueX2;
+                        vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
+                        voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+                        chosenTextureID = sliderValueX2;
+                    }
+                }
+
+                ImGui::End();
+            }
+
+            if (!camera.isFlying && camera.position.y < -100)
+            {
+                camera.position = camera.lastPosition;
                 camera.yVelocity = 0;
-
             }
 
-            ImGui::Spacing();
-            
-            if (ImGui::Button("Exit Program")) 
+            if (paused)
             {
-                glfwSetWindowShouldClose(window, true);
+                ImGui::Begin("PAUSED", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+
+                // Set font size to 20
+                ImGui::SetWindowFontScale(2.0f);
+
+                // Set window position to center
+                ImVec2 windowPos =
+                    ImVec2((width - ImGui::GetWindowWidth()) / 2, (height - ImGui::GetWindowHeight()) / 2);
+                ImGui::SetWindowPos(windowPos);
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+
+                // Centered "Resume Program" button
+                float buttonWidth = ImGui::CalcTextSize("Resume Program").x + 20; // Adding some padding
+                ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
+                if (ImGui::Button("Resume Program", ImVec2(buttonWidth, 0)))
+                {
+                    paused = false;
+                    mouseControl = false;
+                }
+
+                ImGui::Spacing();
+
+                // Centered "UNSTUCK" button
+                buttonWidth = ImGui::CalcTextSize("UNSTUCK").x + 20; // Adding some padding
+                ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
+                if (ImGui::Button("UNSTUCK", ImVec2(buttonWidth, 0)))
+                {
+                    camera.position = glm::vec3(0, 3.0f, 0);
+                    camera.yVelocity = 0;
+                }
+                buttonWidth = ImGui::CalcTextSize("WIPE MAP").x + 20;
+                ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
+                if (ImGui::Button("WIPE MAP", ImVec2(buttonWidth, 0)))
+                {
+                    voxels = LoadCubesFromFile("res/mapVoxelsBackup.txt");
+                    lights = LoadLightsFromFile("res/mapLightsBackup.txt");
+                    needsRefresh = true;
+                }
+
+                ImGui::Spacing();
+
+                // Centered "SAVE" and "LOAD" buttons
+                buttonWidth = ImGui::CalcTextSize("SAVE").x + 20; // Adding some padding
+                ImGui::SetCursorPosX((ImGui::GetWindowWidth() - (buttonWidth * 2 + 10)) /
+                                     2); // Centering both buttons with some spacing
+                if (ImGui::Button("SAVE", ImVec2(buttonWidth, 0)))
+                {
+                    SaveCubesToFile(voxels, "res/mapVoxels.txt");
+                    SaveLightsToFile(lights, "res/mapLights.txt");
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("LOAD", ImVec2(buttonWidth, 0)))
+                {
+                    voxels = LoadCubesFromFile("res/mapVoxels.txt");
+                    lights = LoadLightsFromFile("res/mapLights.txt");
+                    needsRefresh = true;
+                }
+
+                ImGui::Spacing();
+
+                // Centered "Exit Program" button
+                buttonWidth = ImGui::CalcTextSize("Exit Program").x + 20; // Adding some padding
+                ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
+                if (ImGui::Button("Exit Program", ImVec2(buttonWidth, 0)))
+                {
+                    glfwSetWindowShouldClose(window, true);
+                }
+
+                ImGui::End();
             }
 
-            ImGui::End();
-        }
-
-        //draw notifications from the notification queue
-        for (int i = 0; i < notifications.size(); i++)
-        {
-            ImGui::Begin("Notification", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::SetWindowPos(ImVec2(10, 10));
-            ImGui::Text("%s", notifications[i]->message.c_str());
-            ImGui::End();
-            notifications[i]->time -= dt;
-            if (notifications[i]->time <= 0)
+            // draw notifications from the notification queue
+            for (int i = 0; i < notifications.size(); i++)
             {
-                notifications.erase(notifications.begin() + i);
+                ImGui::Begin("Notification", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+                ImGui::SetWindowPos(ImVec2(10, 10));
+                ImGui::Text("%s", notifications[i]->message.c_str());
+                ImGui::End();
+                notifications[i]->time -= dt;
+                if (notifications[i]->time <= 0)
+                {
+                    notifications.erase(notifications.begin() + i);
+                }
             }
-        }
-        
 
-        
-        
-        
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #pragma endregion IMGUI
 
-        GLCall(glfwSwapBuffers(window));
-
-        // Calculate time taken for the frame
-        auto frameEnd = std::chrono::steady_clock::now();
-        auto frameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
-
-        // Delay to maintain 60 FPS
-        std::chrono::milliseconds targetFrameDuration(1000 / 60);
-        auto sleepTime = targetFrameDuration - frameDuration;
-        if (sleepTime > std::chrono::milliseconds::zero()) {
-            std::this_thread::sleep_for(sleepTime);
+            glfwSwapBuffers(window);
         }
     }
     ImGui_ImplOpenGL3_Shutdown();
@@ -1042,4 +2010,3 @@ int main()
     glfwTerminate();
     return 0;
 }
-

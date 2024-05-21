@@ -1,0 +1,7 @@
+Light
+Position: 0 8 0
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 5
+
