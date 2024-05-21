@@ -1,0 +1,96 @@
+Light
+Position: 0 8 0
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 5
+Light
+Position: 0 14 52
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 12 52
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 16 4
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 16 -26
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 16 -24
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 14 50
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 16 -28
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: -2 16 -26
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 2 16 -26
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 2 16 0
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 16 -2
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: -2 16 0
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: -2 12 50
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 2 12 50
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
+Light
+Position: 0 12 48
+Direction: 1 0 1
+RGBA: 1 1 1 1
+Down: true
+Brightness: 1
