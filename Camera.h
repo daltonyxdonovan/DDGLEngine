@@ -25,6 +25,7 @@ class Camera
     bool pointZMinusColliding = false;
     float yVelocity = 0.0f;
     float jumpHeight = 0.001f;
+    int maxVelocity = 2;
     bool onGround = false;
     bool isJumping = false;
     CubeCollider collider;
@@ -85,8 +86,8 @@ class Camera
 
     void Update(GLFWwindow *window, float dt, bool &isMouseActive)
     {
-        if (dt > 0.016f)
-            dt = 0.016f;
+        // if (dt > 0.016f)
+        //     dt = 0.016f;
 
         bool moveForward = false;
         bool moveBackward = false;
@@ -334,6 +335,21 @@ class Camera
                 position.y += .1f;
             }
         }
+
+        if (velocity.x > maxVelocity)
+            velocity.x = maxVelocity;
+        if (velocity.x < -maxVelocity)
+            velocity.x = -maxVelocity;
+
+        if (yVelocity > 1)
+            yVelocity = 1;
+        if (yVelocity < -1)
+            yVelocity = -1;
+        
+        if (velocity.z > maxVelocity)
+            velocity.z = maxVelocity;
+        if (velocity.z < -maxVelocity)
+            velocity.z = -maxVelocity;
 
         if (!isFlying && !onGround)
         {

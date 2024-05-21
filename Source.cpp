@@ -1,14 +1,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include "Ray.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-
 #include "Camera.h"
 #include "CubeCollider.h"
 #include "FastNoiseLite.h"
@@ -52,9 +50,7 @@ class Cube
     CubeCollider collider;
     int index = 0;
     bool invisible = false;
-
     std::vector<float> cornerPositions;
-
     std::vector<unsigned int> indices = {
         0,  1,  2,  2,  3,  0,  // front face
         4,  5,  6,  6,  7,  4,  // back face
@@ -74,58 +70,8 @@ class Cube
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider.setPosition(position);
         collider.setSize(scale);
-        // clang-format off
-        this->cornerPositions = 
-        {
-            // Front face
-            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
-            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
-
-            // Back face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
-             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
-            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
-
-            // Top face
-            -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
-             1,  1, -1, 0.1f, 0.0f, textureID,  0,  1,  0, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  0,  1,  0, chosen,
-            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
-
-            // Bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
-            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
-
-            // Right face
-             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
-             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
-
-            // Left face
-            -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
-            -1,  1, -1, 0.0f, 0.1f, textureID, -1,  0,  0, chosen,
-            -1,  1,  1, 0.1f, 0.1f, textureID, -1,  0,  0, chosen,
-            -1, -1,  1, 0.1f, 0.0f, textureID, -1,  0,  0, chosen,
-        };
-
-        // clang-format on
-
-        vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
-        };
+        SetCornerPositions(textureID, chosen);
+        UpdateVertices();
     }
 
     Cube(glm::vec3 position, float textureID, float chosen = 0)
@@ -136,58 +82,8 @@ class Cube
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider.setPosition(position);
         collider.setSize(scale);
-        // clang-format off
-        this->cornerPositions = 
-        {
-            // Front face
-            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
-            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
-
-            // Back face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
-             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
-            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
-
-            // Top face
-            -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
-             1,  1, -1, 0.1f, 0.0f, textureID,  0,  1,  0, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  0,  1,  0, chosen,
-            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
-
-            // Bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
-            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
-
-            // Right face
-             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
-             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
-
-            // Left face
-            -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
-            -1,  1, -1, 0.0f, 0.1f, textureID, -1,  0,  0, chosen,
-            -1,  1,  1, 0.1f, 0.1f, textureID, -1,  0,  0, chosen,
-            -1, -1,  1, 0.1f, 0.0f, textureID, -1,  0,  0, chosen,
-        };
-
-        // clang-format on
-
-        vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
-        };
+        SetCornerPositions(textureID, chosen);
+        UpdateVertices();
     }
 
     Cube(glm::vec3 pos, float textureID) : position(pos), textureIndex(textureID), collider()
@@ -199,6 +95,12 @@ class Cube
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider.setPosition(position);
         collider.setSize(scale);
+        SetCornerPositions(textureID, chosen);
+        UpdateVertices();
+    }
+
+    void SetCornerPositions(float textureID, float chosen)
+    {
         // clang-format off
         this->cornerPositions = 
         {
@@ -241,16 +143,6 @@ class Cube
 
         // clang-format on
 
-        vertices = {
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z + scale.z), // 0
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z + scale.z), // 1
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z + scale.z), // 2
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z + scale.z), // 3
-            glm::vec3(position.x - scale.x, position.y - scale.y, position.z - scale.z), // 4
-            glm::vec3(position.x + scale.x, position.y - scale.y, position.z - scale.z), // 5
-            glm::vec3(position.x + scale.x, position.y + scale.y, position.z - scale.z), // 6
-            glm::vec3(position.x - scale.x, position.y + scale.y, position.z - scale.z)  // 7
-        };
     }
 
     void UpdateVertices()
@@ -386,7 +278,7 @@ std::vector<Cube> LoadCubesFromFile(const std::string &filename)
         return cubes;
     }
 
-    std::cout << "loading voxels..." << std::endl;
+    //std::cout << "loading voxels..." << std::endl;
 
     std::string line;
     while (std::getline(file, line))
@@ -445,7 +337,7 @@ std::vector<Cube> LoadCubesFromFile(const std::string &filename)
 
             cubes.push_back(cube);
 
-            std::cout << "cube loaded!" << std::endl;
+            //std::cout << "cube loaded!" << std::endl;
         }
     }
 
@@ -738,6 +630,7 @@ int main()
     {
         if (PRINTLOOPLOG)
             std::cout << "checking lights..." << std::endl;
+
         for (int i = 0; i < lights.size(); i++)
         {
             lights[i]->position.x = (int)lights[i]->position.x;
@@ -747,6 +640,7 @@ int main()
 
         if (PRINTLOOPLOG)
             std::cout << "checking frame times..." << std::endl;
+
         double currentTime = glfwGetTime();
         double frameDuration = currentTime - lastFrameTime;
         lastFrameTime = currentTime;
@@ -757,13 +651,16 @@ int main()
         double timeLeftForNextFrame = targetFrameDuration - frameDuration;
         auto frameStart = std::chrono::steady_clock::now();
         float distToCube = 99999999;
+
         if (PRINTLOOPLOG)
             std::cout << "starting rendering..." << std::endl;
+
         if (timeLeftForNextFrame > 0.0)
         {
 
             if (needsRefresh)
             {
+                addNotification("Refreshing map", 10);
                 if (PRINTLOOPLOG)
                     std::cout << "refreshing map..." << std::endl;
                 needsRefresh = false;
@@ -1020,17 +917,9 @@ int main()
                     std::cout << "done refreshing map!" << std::endl;
             }
 
-#pragma region KEYPRESSES
-            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            {
-                paused = true;
-                mouseControl = true;
-            }
-
-#pragma endregion KEYPRESSES
-
             if (PRINTLOOPLOG)
                 std::cout << "doing matrix transformations..." << std::endl;
+
 #pragma region MVP
             ImGui_ImplOpenGL3_NewFrame();
             glfwSwapInterval(1);
@@ -1058,8 +947,10 @@ int main()
             renderer.Draw(va, ib, shader);
 
 #pragma endregion MVP
+            
             if (PRINTLOOPLOG)
                 std::cout << "done with transformations, handling collision now!" << std::endl;
+
 #pragma region COLLISION
 
             voxelsCloseToPlayer.clear();
@@ -1242,6 +1133,14 @@ int main()
 
             if (PRINTLOOPLOG)
                 std::cout << "done with collisions, handling keypresses/mouse input now!" << std::endl;
+
+#pragma region KEYPRESSES
+            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            {
+                paused = true;
+                mouseControl = true;
+            }
+
             //  if left mouse is pressed
             if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
             {
@@ -1373,13 +1272,17 @@ int main()
                     }
                 }
             }
+#pragma endregion KEYPRESSES
 
             if (PRINTLOOPLOG)
                 std::cout << "starting IMGUI rendering!" << std::endl;
+
 #pragma region IMGUI
 
             ImGui::NewFrame();
 
+
+#pragma region CameraInfo
             ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
             // Title
@@ -1425,27 +1328,29 @@ int main()
 
             // End window
             ImGui::End();
+#pragma endregion CameraInfo
 
-            ImGui::Begin(" ", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("voxels: %lu", voxels.size());
+#pragma region SceneInfo
+
+            ImGui::Begin("SceneInfo", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("Objects: %lu", voxels.size());
             ImGui::Text("Indices: %d", indicesCount);
             ImGui::Text("Triangles: %lu", voxels.size() * 12);
             ImGui::Text("Lights: %lu", lights.size());
-            ImGui::End();
-
-            ImGui::Begin("FPS", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-
             // Calculate and display FPS
             static float fps = 0.0f;
             static float lastFrameTime = 0.0f;
-
             const float now = glfwGetTime(); // Assuming you're using GLFW
             fps = 1.0f / (now - lastFrameTime);
             lastFrameTime = now;
-
             ImGui::Text("FPS: %.1f", fps);
-
             ImGui::End();
+
+#pragma endregion SceneInfo
+
+#pragma region CubeLookingAt
+
+            
 
             if (cubeLookingAt != nullptr)
             {
@@ -1900,11 +1805,9 @@ int main()
                 ImGui::End();
             }
 
-            if (!camera.isFlying && camera.position.y < -100)
-            {
-                camera.position = camera.lastPosition;
-                camera.yVelocity = 0;
-            }
+#pragma endregion CubeLookingAt
+
+#pragma region PauseMenu
 
             if (paused)
             {
@@ -1981,6 +1884,10 @@ int main()
                 ImGui::End();
             }
 
+#pragma endregion PauseMenu
+
+#pragma region Notifications
+
             // draw notifications from the notification queue
             for (int i = 0; i < notifications.size(); i++)
             {
@@ -1988,15 +1895,18 @@ int main()
                 ImGui::SetWindowPos(ImVec2(10, 10));
                 ImGui::Text("%s", notifications[i]->message.c_str());
                 ImGui::End();
-                notifications[i]->time -= dt;
+                notifications[i]->time -= .1f;
                 if (notifications[i]->time <= 0)
                 {
                     notifications.erase(notifications.begin() + i);
                 }
             }
 
+#pragma endregion Notifications
+
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 #pragma endregion IMGUI
 
             glfwSwapBuffers(window);
