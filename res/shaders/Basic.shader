@@ -55,6 +55,7 @@ uniform vec3 lightPos[256]; // Array of light positions, with a maximum of 100 l
 uniform vec4 lightColor[256]; // Array of light colors, with a maximum of 100 lights
 uniform float lightBrightness[256]; // Array of light brightness values, with a maximum of 100 lights
 uniform int numLights;     // Number of active lights
+uniform float ambientLight;
 
 void main() {
     if (invisible != 0.0f)
@@ -73,7 +74,7 @@ void main() {
 
     vec3 fragPos = vec3(v_VertexX, v_VertexY, v_VertexZ);
     vec3 normal = normalize(normalVec);
-    vec3 ambient = vec3(0.1f); // Ambient lighting
+    vec3 ambient = vec3(ambientLight); // Ambient lighting
 
 
     vec3 finalColor = vec3(0.0);

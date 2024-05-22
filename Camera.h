@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <cstring>
 #include <glm/glm.hpp>
+#include <iostream>
 
 class Camera
 {
@@ -32,6 +33,7 @@ class Camera
     bool isRunning = false;
     glm::vec3 target;
     bool isFlying = true;
+    float fov = 75;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
@@ -52,10 +54,10 @@ class Camera
         });
     }
 
-    glm::mat4 getViewMatrix() const
+    /*glm::mat4 getViewMatrix() const
     {
         return glm::lookAt(position, target, worldUp);
-    }
+    }*/
 
     bool getOnGround() const
     {
@@ -345,7 +347,7 @@ class Camera
             yVelocity = 1;
         if (yVelocity < -1)
             yVelocity = -1;
-        
+
         if (velocity.z > maxVelocity)
             velocity.z = maxVelocity;
         if (velocity.z < -maxVelocity)

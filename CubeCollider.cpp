@@ -134,23 +134,23 @@ glm::vec3 CubeCollider::ResolveCollision(const CubeCollider &other)
     if (axis == 0) // x-axis
     {
         if (position.x > other.position.x)
-            newPosition = glm::floor((position.x + overlap.x) / gridSize) * gridSize;
+            newPosition = ((position.x + overlap.x) / gridSize) * gridSize;
         else
-            newPosition = glm::ceil((position.x - overlap.x) / gridSize) * gridSize;
+            newPosition = ((position.x - overlap.x) / gridSize) * gridSize;
     }
     else if (axis == 1) // y-axis
     {
         if (position.y > other.position.y)
-            newPosition = glm::floor((position.y + overlap.y) / gridSize) * gridSize;
+            newPosition = ((position.y + overlap.y) / gridSize) * gridSize;
         else
-            newPosition = glm::ceil((position.y - overlap.y) / gridSize) * gridSize;
+            newPosition = ((position.y - overlap.y) / gridSize) * gridSize;
     }
     else if (axis == 2) // z-axis
     {
         if (position.z > other.position.z)
-            newPosition = glm::floor((position.z + overlap.z) / gridSize) * gridSize;
+            newPosition = ((position.z + overlap.z) / gridSize) * gridSize;
         else
-            newPosition = glm::ceil((position.z - overlap.z) / gridSize) * gridSize;
+            newPosition = ((position.z - overlap.z) / gridSize) * gridSize;
     }
 
     mtv[axis] = newPosition - position[axis];
