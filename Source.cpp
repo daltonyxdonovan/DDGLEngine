@@ -1365,9 +1365,9 @@ int main()
 
 #pragma region CameraInfo
 
-            /*int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
+            int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
             if (distance < 10)
-                camera.position = glm::vec3(-185, 70, 50);*/
+                camera.position = glm::vec3(-185, 70, 50);
 
             ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
