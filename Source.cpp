@@ -460,13 +460,13 @@ std::vector<Light *> LoadLightsFromFile(const std::string &filename)
 #pragma endregion
 
 Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
-const unsigned int STRIDE = cubeDummy.cornerPositions.size() / 24;
+const unsigned int STRIDE = 10;
 int cooldownForBreak = 0;
 bool pinned = false;
 double lastFrameTime = 0.0;
 glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
 
-const bool PRINTLOG = false;     // for debugging start of program
+const bool PRINTLOG = true;      // for debugging start of program
 const bool PRINTLOOPLOG = false; // for debugging loop  in program
 
 int main()
@@ -568,21 +568,40 @@ int main()
         std::cerr << "FAILED to initialize GLEW\n";
     }
 
+    if (PRINTLOG)
+        std::cout << "GLFW and GL3W initialised! Setting up VBO/VAO!" << std::endl;
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
 
+    if (PRINTLOG)
+        std::cout << "Set depth-testing to true\nSet blending to true" << std::endl;
+
     unsigned int vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+
+    if (PRINTLOG)
+        std::cout << "Finally binding VAO..." << std::endl;
+
 #pragma endregion GLINIT
 
     // this is the size of each tri's info (5, 3 for position, 2 for texture coordinates) * 36 (number of indices in our
     // cube)
     int positionCount = STRIDE * AMOUNT_OF_INDICES * voxels.size();
     VertexArray va;
+    if (PRINTLOG)
+        std::cout << "Finally creating vertex buffer from info..." << std::endl;
+
     VertexBuffer vb(positions, voxels.size() * FULL_STRIDE);
+    if (PRINTLOG)
+        std::cout << "Finally creating vertex layout from info..." << std::endl;
     VertexBufferLayout layout;
+
+    if (PRINTLOG)
+        std::cout << "VBO/VAO set up! creating index buffer!" << std::endl;
+
     layout.Push(GL_FLOAT, 3); // position
     layout.Push(GL_FLOAT, 2); // texture coordinates
     layout.Push(GL_FLOAT, 1); // textureID
@@ -1345,6 +1364,10 @@ int main()
             ImGui::NewFrame();
 
 #pragma region CameraInfo
+
+            /*int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
+            if (distance < 10)
+                camera.position = glm::vec3(-185, 70, 50);*/
 
             ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
