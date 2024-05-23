@@ -32,7 +32,7 @@ class Camera
     CubeCollider collider;
     bool isRunning = false;
     glm::vec3 target;
-    bool isFlying = true;
+    bool isFlying = false;
     float fov = 75;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
