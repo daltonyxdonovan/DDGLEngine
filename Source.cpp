@@ -1,7 +1,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
+// Do NOT connect these two
 #include "Camera.h"
 #include "CubeCollider.h"
 #include "FastNoiseLite.h"
@@ -38,7 +38,9 @@ std::vector<Light *> lights;
 bool picking = false;
 int chosenTextureID = 0;
 glm::vec3 sizeToSave = glm::vec3(1, 1, 1);
-float ambientLightLevel = 1.0f;
+float ambientLightLevel = 0.1f;
+int currentLevel = 0;
+int maxLevelAllowed = 9;
 
 #pragma region CLASSES/METHODS
 
@@ -112,6 +114,63 @@ class Cube
         collider.setSize(scale);
         SetCornerPositions(textureID, chosen);
         UpdateVertices();
+    }
+
+    void print() const
+    {
+        auto printVec3 = [](const std::string &name, const glm::vec3 &vec) {
+            std::cout << name << ": (" << vec.x << ", " << vec.y << ", " << vec.z << ")\n";
+        };
+
+        std::cout << "Cube Details:\n";
+        printVec3("Position", position);
+        printVec3("Position Lowest", positionLowest);
+        printVec3("Position Highest", positionHighest);
+        printVec3("Rotation", rotation);
+        printVec3("Scale", scale);
+
+        std::cout << "Vertices: [";
+        for (const auto &vertex : vertices)
+        {
+            std::cout << " (" << vertex.x << ", " << vertex.y << ", " << vertex.z << ")";
+        }
+        std::cout << " ]\n";
+
+        std::cout << "Texture Index: " << textureIndex << "\n";
+
+        std::cout << "Vertices After Transformation: [";
+        for (const auto &vertex : verticesAfterTransformation)
+        {
+            std::cout << " (" << vertex.x << ", " << vertex.y << ", " << vertex.z << ")";
+        }
+        std::cout << " ]\n";
+
+        std::cout << "Collider Position: (" << collider.position.x << ", " << collider.position.y << ", "
+                  << collider.position.z << ")\n";
+        std::cout << "Collider Size: (" << collider.size.x << ", " << collider.size.y << ", " << collider.size.z
+                  << ")\n";
+
+        std::cout << "Index: " << index << "\n";
+        std::cout << "Invisible: " << (invisible ? "true" : "false") << "\n";
+
+        std::cout << "Corner Positions: [";
+        for (size_t i = 0; i < cornerPositions.size(); i += 10)
+        {
+            std::cout << " (";
+            for (size_t j = 0; j < 10; ++j)
+            {
+                std::cout << cornerPositions[i + j] << (j < 9 ? ", " : "");
+            }
+            std::cout << ")";
+        }
+        std::cout << " ]\n";
+
+        std::cout << "Indices: [";
+        for (size_t i = 0; i < indices.size(); ++i)
+        {
+            std::cout << indices[i] << (i < indices.size() - 1 ? ", " : "");
+        }
+        std::cout << " ]\n";
     }
 
     void SetCornerPositions(float textureID, float chosen)
@@ -1216,13 +1275,13 @@ int main()
                 {
                     if (cubeLookingAt != nullptr)
                     {
-                        if (cubeLookingAt->index >= 24 && cubeLookingAt->index < voxels.size())
+                        if (cubeLookingAt->index >= 119 && cubeLookingAt->index < voxels.size())
                         {
                             voxels.erase(voxels.begin() + cubeLookingAt->index);
                         }
                         else
                         {
-                            std::cerr << "Index " << cubeLookingAt->index << " out of range" << std::endl;
+                            addNotification("VOXEL PROTECTED FROM BREAKING-", 30);
                         }
                         for (int i = 0; i < voxels.size(); i++)
                         {
@@ -1270,7 +1329,7 @@ int main()
                             found = true;
                     }
 
-                    if (!found)
+                    if (!found && currentLevel != 0)
 
                     {
                         if (chosenTextureID != 99)
@@ -1317,6 +1376,9 @@ int main()
                             }
                         }
                     }
+
+                    if (currentLevel == 0)
+                        addNotification("Building is not allowed in the spawn level! (level 0)", 30);
 
                     /*float cornerPositions[240];
                     std::memcpy(cornerPositions, voxels[voxels.size() - 1].cornerPositions, 240 * sizeof(float));
@@ -1367,7 +1429,18 @@ int main()
 
             int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
             if (distance < 10)
+            {
                 camera.position = glm::vec3(-185, 70, 50);
+                if (currentLevel < maxLevelAllowed)
+                    currentLevel++;
+                std::string levelName = "res/mapVoxels" + std::to_string(currentLevel) + ".txt";
+                voxels = LoadCubesFromFile(levelName);
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    voxels[i].collider.UpdateScale(voxels[i].scale);
+                    voxels[i].collider.setPosition(voxels[i].position);
+                }
+            }
 
             ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -1991,6 +2064,11 @@ int main()
                 {
                     voxels = LoadCubesFromFile("res/mapVoxels.txt");
                     lights = LoadLightsFromFile("res/mapLights.txt");
+                    for (int i = 0; i < voxels.size(); i++)
+                    {
+                        voxels[i].collider.UpdateScale(voxels[i].scale);
+                        voxels[i].collider.setPosition(voxels[i].position);
+                    }
                     needsRefresh = true;
                 }
 
