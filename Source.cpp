@@ -179,16 +179,16 @@ class Cube
         this->cornerPositions = 
         {
             // Front face
-            -1, -1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
-            -1,  1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
+            -1,  1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
+            1,  1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
+             1, -1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
+            -1, -1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
 
             // Back face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
-             1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
-            -1,  1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
+            1, -1, -1, 0.0f, 0.0f, textureID,  0,  0, -1, chosen,
+             1, 1, -1, 0.1f, 0.0f, textureID,  0,  0, -1, chosen,
+             -1,  1, -1, 0.1f, 0.1f, textureID,  0,  0, -1, chosen,
+            -1,  -1, -1, 0.0f, 0.1f, textureID,  0,  0, -1, chosen,
 
             // Top face
             -1,  1, -1, 0.0f, 0.0f, textureID,  0,  1,  0, chosen,
@@ -197,16 +197,16 @@ class Cube
             -1,  1,  1, 0.0f, 0.1f, textureID,  0,  1,  0, chosen,
 
             // Bottom face
-            -1, -1, -1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1, -1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
-             1, -1,  1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
-            -1, -1,  1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
+            -1, -1, 1, 0.0f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1, 1, 0.1f, 0.0f, textureID,  0, -1,  0, chosen,
+             1, -1,  -1, 0.1f, 0.1f, textureID,  0, -1,  0, chosen,
+            -1, -1,  -1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
 
             // Right face
              1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
-             1,  1, -1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
+             1,  -1, 1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
              1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
-             1, -1,  1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
+             1, 1,  -1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
 
             // Left face
             -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
@@ -516,6 +516,281 @@ std::vector<Light *> LoadLightsFromFile(const std::string &filename)
     return lights;
 }
 
+void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
+             float *&positions, VertexBufferLayout &layout, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib,
+             unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE)
+{
+    // addNotification("Refreshing map", 10);
+    if (PRINTLOOPLOG)
+        std::cout << "refreshing map..." << std::endl;
+    needsRefresh = false;
+    indicesCount = voxels.size() * AMOUNT_OF_INDICES;
+
+    if (indicesAfter != nullptr)
+    {
+        delete[] indicesAfter;
+        indicesAfter = nullptr;
+    }
+
+    indicesAfter = new unsigned int[indicesCount];
+    for (int i = 0; i < voxels.size(); i++)
+    {
+        for (int j = 0; j < voxels[i].indices.size(); j++)
+        {
+            indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
+        }
+        voxels[i].index = i;
+    }
+
+    std::vector<float> scales;
+    for (int i = 0; i < voxels.size(); i++)
+    {
+        scales.push_back(voxels[i].scale.x);
+        scales.push_back(voxels[i].scale.y);
+        scales.push_back(voxels[i].scale.z);
+    }
+
+    // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36
+    // (number of indices in our cube)
+    // positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
+
+    if (positions != nullptr)
+    {
+        delete[] positions;
+        positions = nullptr;
+    }
+    positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
+    for (int i = 0; i < voxels.size(); i++)
+    {
+        for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
+        {
+            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
+            if (j == 0)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 1)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 2)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 10)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 11)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 12)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 20)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 21)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 22)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 30)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 31)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 32)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 40)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 41)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 42)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 50)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 51)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 52)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 60)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 61)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 62)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 70)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 71)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 72)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 80)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 81)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 82)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 90)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 91)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 92)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 100)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 101)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 102)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 110)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 111)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 112)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 120)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 121)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 122)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 130)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 131)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 132)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 140)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 141)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 142)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 150)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 151)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 152)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 160)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 161)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 162)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 170)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 171)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 172)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 180)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 181)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 182)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 190)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 191)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 192)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 200)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 201)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 202)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 210)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 211)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 212)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 220)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 221)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 222)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j == 230)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
+            if (j == 231)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
+            if (j == 232)
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
+
+            if (j % STRIDE == 0) // x
+            {
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.x;
+            }
+            else if (j % STRIDE == 1) // y
+            {
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.y;
+            }
+            else if (j % STRIDE == 2) // z
+            {
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            }
+            // else if (j % STRIDE == 3) //u
+            //{
+            //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            // }
+            // else if (j % STRIDE == 4) //v
+            //{
+            //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            // }
+            else if (j % STRIDE == 5) // textureID
+            {
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].textureIndex;
+            }
+            // else if (j % STRIDE == 6) //normal.x
+            //{
+            //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            // }
+            // else if (j % STRIDE == 7) //normal.y
+            //{
+            //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            // }
+            // else if (j % STRIDE == 8) //normal.z
+            //{
+            //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
+            //}
+            else if (j % STRIDE == 9) // invisible
+            {
+                positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].invisible;
+            }
+        }
+    }
+
+    va.Unbind();
+    vb.Unbind();
+    ib.Unbind();
+
+    vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
+    va.AddBuffer(vb, layout);
+    ib.UpdateBuffer(indicesAfter, indicesCount);
+
+    va.Bind();
+    vb.Bind();
+    ib.Bind();
+    if (PRINTLOOPLOG)
+        std::cout << "done refreshing map!" << std::endl;
+}
+
 #pragma endregion
 
 Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
@@ -732,9 +1007,9 @@ int main()
 
 #pragma endregion GLINIT2
 
-    /*glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glFrontFace(GL_CW);*/
+    glFrontFace(GL_CW);
 
 #pragma endregion INITIALIZATION
 
@@ -772,275 +1047,8 @@ int main()
 
             if (needsRefresh)
             {
-                // addNotification("Refreshing map", 10);
-                if (PRINTLOOPLOG)
-                    std::cout << "refreshing map..." << std::endl;
-                needsRefresh = false;
-                indicesCount = voxels.size() * AMOUNT_OF_INDICES;
-
-                if (indicesAfter != nullptr)
-                {
-                    delete[] indicesAfter;
-                    indicesAfter = nullptr;
-                }
-
-                indicesAfter = new unsigned int[indicesCount];
-                for (int i = 0; i < voxels.size(); i++)
-                {
-                    for (int j = 0; j < voxels[i].indices.size(); j++)
-                    {
-                        indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
-                    }
-                    voxels[i].index = i;
-                }
-
-                std::vector<float> scales;
-                for (int i = 0; i < voxels.size(); i++)
-                {
-                    scales.push_back(voxels[i].scale.x);
-                    scales.push_back(voxels[i].scale.y);
-                    scales.push_back(voxels[i].scale.z);
-                }
-
-                // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36
-                // (number of indices in our cube)
-                // positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
-
-                if (positions != nullptr)
-                {
-                    delete[] positions;
-                    positions = nullptr;
-                }
-                positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
-                for (int i = 0; i < voxels.size(); i++)
-                {
-                    for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
-                    {
-                        positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
-                        if (j == 0)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 1)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 2)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 10)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 11)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 12)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 20)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 21)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 22)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 30)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 31)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 32)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 40)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 41)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 42)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 50)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 51)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 52)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 60)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 61)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 62)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 70)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 71)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 72)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 80)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 81)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 82)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 90)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 91)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 92)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 100)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 101)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 102)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 110)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 111)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 112)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 120)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 121)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 122)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 130)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 131)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 132)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 140)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 141)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 142)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 150)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 151)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 152)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 160)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 161)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 162)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 170)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 171)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 172)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 180)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 181)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 182)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 190)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 191)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 192)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 200)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 201)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 202)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 210)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 211)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 212)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 220)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 221)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 222)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j == 230)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3];
-                        if (j == 231)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 1];
-                        if (j == 232)
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] *= scales[i * 3 + 2];
-
-                        if (j % STRIDE == 0) // x
-                        {
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.x;
-                        }
-                        else if (j % STRIDE == 1) // y
-                        {
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.y;
-                        }
-                        else if (j % STRIDE == 2) // z
-                        {
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        }
-                        // else if (j % STRIDE == 3) //u
-                        //{
-                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        // }
-                        // else if (j % STRIDE == 4) //v
-                        //{
-                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        // }
-                        else if (j % STRIDE == 5) // textureID
-                        {
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].textureIndex;
-                        }
-                        // else if (j % STRIDE == 6) //normal.x
-                        //{
-                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        // }
-                        // else if (j % STRIDE == 7) //normal.y
-                        //{
-                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        // }
-                        // else if (j % STRIDE == 8) //normal.z
-                        //{
-                        //     positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-                        //}
-                        else if (j % STRIDE == 9) // invisible
-                        {
-                            positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].invisible;
-                        }
-                    }
-                }
-
-                va.Unbind();
-                vb.Unbind();
-                ib.Unbind();
-
-                vb.UpdateBuffer(positions, voxels.size() * FULL_STRIDE);
-                va.AddBuffer(vb, layout);
-                ib.UpdateBuffer(indicesAfter, indicesCount);
-
-                va.Bind();
-                vb.Bind();
-                ib.Bind();
-                if (PRINTLOOPLOG)
-                    std::cout << "done refreshing map!" << std::endl;
+                Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib,
+                        FULL_STRIDE, PRINTLOOPLOG, STRIDE);
             }
 
             if (PRINTLOOPLOG)
@@ -1087,14 +1095,6 @@ int main()
 
             for (int i = 0; i < voxels.size(); i++)
             {
-
-                /*float distance = glm::distance(camera.position, voxels[i].position);
-                if (distance < 10 && distance > -10)
-                {
-                    voxelsCloseToPlayer.push_back(&voxels[i]);
-                    voxelsCloseToPlayer[voxelsCloseToPlayer.size() - 1]->collider = voxels[i].collider;
-                }*/
-
                 voxelsCloseToPlayer.push_back(&voxels[i]);
                 voxelsCloseToPlayer[voxelsCloseToPlayer.size() - 1]->collider = voxels[i].collider;
             }
