@@ -800,7 +800,7 @@ bool pinned = false;
 double lastFrameTime = 0.0;
 glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
 
-const bool PRINTLOG = true;      // for debugging start of program
+const bool PRINTLOG = false;     // for debugging start of program
 const bool PRINTLOOPLOG = false; // for debugging loop  in program
 
 int main()
@@ -809,16 +809,6 @@ int main()
 #pragma region INITIALIZATION
 
 #pragma region MAPSETUP
-    if (PRINTLOG)
-        std::cout << "Setting up noise values!" << std::endl;
-    FastNoiseLite noise;
-    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-    noise.SetFractalType(FastNoiseLite::FractalType_FBm);
-    noise.SetFractalOctaves(4.0);
-    noise.SetFractalLacunarity(5.0f);
-    noise.SetFractalGain(0.5f);
-    noise.SetFrequency(0.06f);
-    noise.SetSeed(rand());
 
     if (PRINTLOG)
         std::cout << "Building map from map.txt..." << std::endl;
@@ -1625,16 +1615,32 @@ int main()
                             cubeLookingAt->scale.y, cubeLookingAt->scale.z);
                 ImGui::Spacing();
 
-                // Add sliders for scale
-                float xScale = cubeLookingAt->scale.x;
-                float yScale = cubeLookingAt->scale.y;
-                float zScale = cubeLookingAt->scale.z;
-
-                if (ImGui::Button("<##ScaleX"))
+                if (cubeLookingAt->textureIndex != 99)
                 {
-                    if (xScale > 0.5f)
+
+                    // Add sliders for scale
+                    float xScale = cubeLookingAt->scale.x;
+                    float yScale = cubeLookingAt->scale.y;
+                    float zScale = cubeLookingAt->scale.z;
+
+                    if (ImGui::Button("<##ScaleX"))
                     {
-                        xScale -= 0.5f;
+                        if (xScale > 0.5f)
+                        {
+                            xScale -= 0.5f;
+                            cubeLookingAt->scale.x = xScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                           yScale, zScale, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::DragFloat("Scale X", &xScale, 0.5f, 0.5f, 50.0f))
+                    {
                         cubeLookingAt->scale.x = xScale;
                         vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
                                        zScale, STRIDE);
@@ -1644,41 +1650,41 @@ int main()
                         voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
                         cubeLookingAt->collider.UpdateScale(colliderScale);
                     }
-                }
-                ImGui::SameLine();
-                if (ImGui::DragFloat("Scale X", &xScale, 0.5f, 0.5f, 50.0f))
-                {
-                    cubeLookingAt->scale.x = xScale;
-                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
-                                   zScale, STRIDE);
-                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                    glm::vec3 colliderScale =
-                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                    cubeLookingAt->collider.UpdateScale(colliderScale);
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(">##ScaleX"))
-                {
-                    if (xScale < 50.0f)
+                    ImGui::SameLine();
+                    if (ImGui::Button(">##ScaleX"))
                     {
-                        xScale += 0.5f;
-                        cubeLookingAt->scale.x = xScale;
-                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x, yScale,
-                                       zScale, STRIDE);
-                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                        glm::vec3 colliderScale =
-                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                        if (xScale < 50.0f)
+                        {
+                            xScale += 0.5f;
+                            cubeLookingAt->scale.x = xScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->scale.x,
+                                           yScale, zScale, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
                     }
-                }
 
-                if (ImGui::Button("<##ScaleY"))
-                {
-                    if (yScale > 0.5f)
+                    if (ImGui::Button("<##ScaleY"))
                     {
-                        yScale -= 0.5f;
+                        if (yScale > 0.5f)
+                        {
+                            yScale -= 0.5f;
+                            cubeLookingAt->scale.y = yScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale,
+                                           cubeLookingAt->scale.y, zScale, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::DragFloat("Scale Y", &yScale, 0.5f, 0.5f, 50.0f))
+                    {
                         cubeLookingAt->scale.y = yScale;
                         vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
                                        zScale, STRIDE);
@@ -1688,41 +1694,41 @@ int main()
                         voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
                         cubeLookingAt->collider.UpdateScale(colliderScale);
                     }
-                }
-                ImGui::SameLine();
-                if (ImGui::DragFloat("Scale Y", &yScale, 0.5f, 0.5f, 50.0f))
-                {
-                    cubeLookingAt->scale.y = yScale;
-                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
-                                   zScale, STRIDE);
-                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                    glm::vec3 colliderScale =
-                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                    cubeLookingAt->collider.UpdateScale(colliderScale);
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(">##ScaleY"))
-                {
-                    if (yScale < 50.0f)
+                    ImGui::SameLine();
+                    if (ImGui::Button(">##ScaleY"))
                     {
-                        yScale += 0.5f;
-                        cubeLookingAt->scale.y = yScale;
-                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, cubeLookingAt->scale.y,
-                                       zScale, STRIDE);
-                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                        glm::vec3 colliderScale =
-                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                        if (yScale < 50.0f)
+                        {
+                            yScale += 0.5f;
+                            cubeLookingAt->scale.y = yScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale,
+                                           cubeLookingAt->scale.y, zScale, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
                     }
-                }
 
-                if (ImGui::Button("<##ScaleZ"))
-                {
-                    if (zScale > 0.5f)
+                    if (ImGui::Button("<##ScaleZ"))
                     {
-                        zScale -= 0.5f;
+                        if (zScale > 0.5f)
+                        {
+                            zScale -= 0.5f;
+                            cubeLookingAt->scale.z = zScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
+                                           cubeLookingAt->scale.z, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::DragFloat("Scale Z", &zScale, 0.5f, 0.5f, 50.0f))
+                    {
                         cubeLookingAt->scale.z = zScale;
                         vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
                                        cubeLookingAt->scale.z, STRIDE);
@@ -1732,36 +1738,144 @@ int main()
                         voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
                         cubeLookingAt->collider.UpdateScale(colliderScale);
                     }
-                }
-                ImGui::SameLine();
-                if (ImGui::DragFloat("Scale Z", &zScale, 0.5f, 0.5f, 50.0f))
-                {
-                    cubeLookingAt->scale.z = zScale;
-                    vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
-                                   cubeLookingAt->scale.z, STRIDE);
-                    voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                    glm::vec3 colliderScale =
-                        glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                    voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                    cubeLookingAt->collider.UpdateScale(colliderScale);
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(">##ScaleZ"))
-                {
-                    if (zScale < 50.0f)
+                    ImGui::SameLine();
+                    if (ImGui::Button(">##ScaleZ"))
                     {
-                        zScale += 0.5f;
-                        cubeLookingAt->scale.z = zScale;
-                        vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
-                                       cubeLookingAt->scale.z, STRIDE);
-                        voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
-                        glm::vec3 colliderScale =
-                            glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
-                        voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
-                        cubeLookingAt->collider.UpdateScale(colliderScale);
+                        if (zScale < 50.0f)
+                        {
+                            zScale += 0.5f;
+                            cubeLookingAt->scale.z = zScale;
+                            vb.UpdateScale(cubeLookingAt->index, cubeLookingAt->position, xScale, yScale,
+                                           cubeLookingAt->scale.z, STRIDE);
+                            voxels[cubeLookingAt->index].scale = cubeLookingAt->scale;
+                            glm::vec3 colliderScale =
+                                glm::vec3(cubeLookingAt->scale.x, cubeLookingAt->scale.y, cubeLookingAt->scale.z);
+                            voxels[cubeLookingAt->index].collider.UpdateScale(colliderScale);
+                            cubeLookingAt->collider.UpdateScale(colliderScale);
+                        }
                     }
                 }
+                else
+                {
+                    bool foundLight = false;
+                    int indexs = -1;
+                    for (int i = 0; i < lights.size(); i++)
+                    {
+                        if (lights[i]->position == cubeLookingAt->position)
+                        {
+                            foundLight = true;
+                            indexs = i;
+                        }
+                    }
 
+                    if (foundLight)
+                    {
+                        std::vector<float> rgbaHere;
+
+                        int r = lights[indexs]->rgba[0];
+                        int g = lights[indexs]->rgba[1];
+                        int b = lights[indexs]->rgba[2];
+                        int intensity = lights[indexs]->brightness;
+
+                        if (ImGui::Button("<##Red"))
+                        {
+                            if (r > 0)
+                            {
+                                r -= 1;
+                                lights[indexs]->rgba[0] = r;
+                            }
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::DragInt("Red", &r, 1, 0, 255))
+                        {
+                            lights[indexs]->rgba[0] = r;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button(">##Red"))
+                        {
+                            if (r < 255)
+                            {
+                                r += 1;
+                                lights[indexs]->rgba[0] = r;
+                            }
+                        }
+
+                        //////////////////////////
+
+                        if (ImGui::Button("<##Green"))
+                        {
+                            if (g > 0)
+                            {
+                                g -= 1;
+                                lights[indexs]->rgba[1] = g;
+                            }
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::DragInt("Green", &g, 1, 0, 255))
+                        {
+                            lights[indexs]->rgba[1] = g;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button(">##Green"))
+                        {
+                            if (g < 255)
+                            {
+                                g += 1;
+                                lights[indexs]->rgba[1] = g;
+                            }
+                        }
+
+                        //////////////////////////
+
+                        if (ImGui::Button("<##Blue"))
+                        {
+                            if (b > 0)
+                            {
+                                b -= 1;
+                                lights[indexs]->rgba[2] = b;
+                            }
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::DragInt("Blue", &b, 1, 0, 255))
+                        {
+                            lights[indexs]->rgba[2] = b;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button(">##Blue"))
+                        {
+                            if (b < 255)
+                            {
+                                b += 1;
+                                lights[indexs]->rgba[2] = b;
+                            }
+                        }
+
+                        //////////////////////////
+
+                        if (ImGui::Button("<##Brightness"))
+                        {
+                            if (intensity > -1)
+                            {
+                                intensity -= 1;
+                                lights[indexs]->brightness = intensity;
+                            }
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::DragInt("Brightness", &intensity, 1, 0, 255))
+                        {
+                            lights[indexs]->brightness = intensity;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button(">##Brightness"))
+                        {
+                            if (intensity < 255)
+                            {
+                                intensity += 1;
+                                lights[indexs]->brightness = intensity;
+                            }
+                        }
+                    }
+                }
                 ImGui::Spacing();
                 ImGui::Spacing();
 

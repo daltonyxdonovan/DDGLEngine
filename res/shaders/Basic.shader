@@ -51,10 +51,10 @@ in float invisible;
 
 uniform sampler2D u_TextureAtlas;
 
-uniform vec3 lightPos[256]; // Array of light positions, with a maximum of 100 lights
-uniform vec4 lightColor[256]; // Array of light colors, with a maximum of 100 lights
-uniform float lightBrightness[256]; // Array of light brightness values, with a maximum of 100 lights
-uniform int numLights;     // Number of active lights
+uniform vec3 lightPos[256]; 
+uniform vec4 lightColor[256];
+uniform float lightBrightness[256];
+uniform int numLights;
 uniform float ambientLight;
 
 void main() {
@@ -67,17 +67,28 @@ void main() {
     vec4 texColor;
     texColor = texture(u_TextureAtlas, v_TexCoord + offset*.1);
 
-    if (texColor.a < 0.1) // Optional: Discard almost fully transparent pixels to avoid artifacts
+    if (texColor.a < 0.1) 
     {
         discard;
     }
 
     vec3 fragPos = vec3(v_VertexX, v_VertexY, v_VertexZ);
+
+    // Check if the fragment position matches any light positions
+    for (int i = 0; i < numLights; i++) {
+        if (distance(fragPos, lightPos[i]) < 2) { // Adjust the threshold as needed
+            color = vec4(1.0, 1.0, 1.0, 1.0); // White color for light positions
+            return;
+        }
+    }
+
     vec3 normal = normalize(normalVec);
-    vec3 ambient = vec3(ambientLight); // Ambient lighting
+    vec3 ambient = vec3(ambientLight);
 
 
     vec3 finalColor = vec3(0.0);
+
+
     
     for (int i = 0; i < numLights; i++) 
     {

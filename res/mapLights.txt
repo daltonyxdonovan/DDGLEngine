@@ -1,47 +1,5 @@
 Light
-Position: -50 24 48
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: 0 35 98
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: 46 30 42
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: 46 30 48
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: 46 15 42
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: 46 15 48
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: -180 109 47
-Direction: 1 0 1
-RGBA: 1 1 1 1
-Down: true
-Brightness: 1
-Light
-Position: -180 109 53
+Position: -4 -1 5
 Direction: 1 0 1
 RGBA: 1 1 1 1
 Down: true
