@@ -777,6 +777,13 @@ int main()
                     std::cout << "refreshing map..." << std::endl;
                 needsRefresh = false;
                 indicesCount = voxels.size() * AMOUNT_OF_INDICES;
+
+                if (indicesAfter != nullptr)
+                {
+                    delete[] indicesAfter;
+                    indicesAfter = nullptr;
+                }
+
                 indicesAfter = new unsigned int[indicesCount];
                 for (int i = 0; i < voxels.size(); i++)
                 {
@@ -797,6 +804,13 @@ int main()
 
                 // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36
                 // (number of indices in our cube)
+                // positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
+
+                if (positions != nullptr)
+                {
+                    delete[] positions;
+                    positions = nullptr;
+                }
                 positions = new float[voxels.size() * STRIDE * AMOUNT_OF_INDICES];
                 for (int i = 0; i < voxels.size(); i++)
                 {
@@ -1275,7 +1289,7 @@ int main()
                 {
                     if (cubeLookingAt != nullptr)
                     {
-                        if (cubeLookingAt->index >= 119 && cubeLookingAt->index < voxels.size())
+                        if (/*cubeLookingAt->index >= 119 && */ cubeLookingAt->index < voxels.size())
                         {
                             voxels.erase(voxels.begin() + cubeLookingAt->index);
                         }
@@ -1329,7 +1343,7 @@ int main()
                             found = true;
                     }
 
-                    if (!found && currentLevel != 0)
+                    if (!found /* && currentLevel != 0*/)
 
                     {
                         if (chosenTextureID != 99)
@@ -1377,8 +1391,8 @@ int main()
                         }
                     }
 
-                    if (currentLevel == 0)
-                        addNotification("Building is not allowed in the spawn level! (level 0)", 30);
+                    /*if (currentLevel == 0)
+                        addNotification("Building is not allowed in the spawn level! (level 0)", 30);*/
 
                     /*float cornerPositions[240];
                     std::memcpy(cornerPositions, voxels[voxels.size() - 1].cornerPositions, 240 * sizeof(float));
@@ -1428,7 +1442,7 @@ int main()
 #pragma region CameraInfo
 
             int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
-            if (distance < 10)
+            /*if (distance < 10)
             {
                 camera.position = glm::vec3(-185, 70, 50);
                 if (currentLevel < maxLevelAllowed)
@@ -1440,7 +1454,7 @@ int main()
                     voxels[i].collider.UpdateScale(voxels[i].scale);
                     voxels[i].collider.setPosition(voxels[i].position);
                 }
-            }
+            }*/
 
             ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
