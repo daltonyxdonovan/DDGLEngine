@@ -9,7 +9,6 @@ VertexBuffer::VertexBuffer(float data[], unsigned int size)
     {
         std::cout << "ERROR: VERTEX BUFFER IS SMALLER THAN 1" << std::endl;
     }
-    std::cout << data + size << std::endl;
     m_BufferData.insert(m_BufferData.end(), data, data + size);
     glGenBuffers(1, &m_RendererID);
     glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);

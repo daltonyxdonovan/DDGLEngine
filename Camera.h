@@ -34,6 +34,7 @@ class Camera
     glm::vec3 target;
     bool isFlying = false;
     float fov = 75;
+    float heighte = 2;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
@@ -105,11 +106,11 @@ class Camera
         float cameraSpeed = 250;
         float rotationSpeed = .25f;
 
-        positionFeet = glm::vec3(position.x, position.y - 4, position.z);
-        pointXPlus = glm::vec3(position.x + .75f, position.y - 2.5f, position.z);
-        pointXMinus = glm::vec3(position.x - .75f, position.y - 2.5f, position.z);
-        pointZPlus = glm::vec3(position.x, position.y - 2.5f, position.z + .75f);
-        pointZMinus = glm::vec3(position.x, position.y - 2.5f, position.z - .75f);
+        positionFeet = glm::vec3(position.x, position.y - heighte, position.z);
+        pointXPlus = glm::vec3(position.x + .75f, position.y - (heighte / 2), position.z);
+        pointXMinus = glm::vec3(position.x - .75f, position.y - (heighte / 2), position.z);
+        pointZPlus = glm::vec3(position.x, position.y - (heighte / 2), position.z + .75f);
+        pointZMinus = glm::vec3(position.x, position.y - (heighte / 2), position.z - .75f);
 
         for (int i = 0; i < 5; i++)
         {

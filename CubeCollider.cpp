@@ -64,10 +64,6 @@ void CubeCollider::UpdateScale(glm::vec3 &sizes)
                glm::vec3{position.x - size.x, position.y + size.y, position.z + size.z},
                glm::vec3{position.x - size.x, position.y + size.y, position.z - size.z}};
 
-    std::cout << "x: " << position.x + size.x << "\ny: " << position.y + size.y << "\nz: " << position.z + size.z
-              << std::endl
-              << std::endl;
-
     bottomFace = {glm::vec3{position.x + size.x, position.y - size.y, position.z + size.z},
                   glm::vec3{position.x + size.x, position.y - size.y, position.z - size.z},
                   glm::vec3{position.x - size.x, position.y - size.y, position.z + size.z},

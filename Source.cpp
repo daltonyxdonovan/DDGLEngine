@@ -1104,7 +1104,10 @@ int main()
                 std::cout << "updating camera" << std::endl;
 
             camera.Update(window, dt, mouseControl);
-            camera.collider.setPosition(camera.position + glm::vec3(0, -4, 0));
+            camera.collider.setPosition(camera.position + glm::vec3(0, -camera.heighte, 0));
+            float val = camera.heighte;
+            glm::vec3 val2(val, val * 2, val);
+            camera.collider.UpdateScale(val2);
 
             camera.pointXMinusColliding = false;
             camera.pointXPlusColliding = false;
@@ -1514,6 +1517,31 @@ int main()
                 if (camera.fov < 180)
                 {
                     camera.fov++;
+                }
+            }
+
+            ImGui::Spacing();
+
+            float sliderValueYe = camera.heighte;
+
+            if (ImGui::Button("<##Height"))
+            {
+                if (camera.heighte > .1f)
+                {
+                    camera.heighte -= 0.1f;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("Height", &sliderValueYe, .1f, .1f, 10.f))
+            {
+                camera.heighte = sliderValueYe;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(">##Height"))
+            {
+                if (camera.heighte < 10.f)
+                {
+                    camera.heighte += 0.1f;
                 }
             }
 
