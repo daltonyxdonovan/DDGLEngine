@@ -1287,7 +1287,8 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
         RotatePoint(points[i], voxels[cubeLookingAt->index].position, rotation, pointsOriginal[i]);
     }
 
-    voxels[cubeLookingAt->index].collider.setRotation(voxels[cubeLookingAt->index].rotation);
+
+    voxels[cubeLookingAt->index].collider.SetOBBColliderFromCorners(voxels[cubeLookingAt->index].collider,points);
 
     voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
     voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
