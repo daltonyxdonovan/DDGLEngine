@@ -1,4 +1,4 @@
-#include "CubeCollider.h"
+#include "OBBCollider.h"
 #include <GLFW/glfw3.h>
 #include <cstring>
 #include <glm/glm.hpp>
@@ -29,7 +29,7 @@ class Camera
     int maxVelocity = 2;
     bool onGround = false;
     bool isJumping = false;
-    CubeCollider collider;
+    OBBCollider collider;
     bool isRunning = false;
     glm::vec3 target;
     bool isFlying = false;
