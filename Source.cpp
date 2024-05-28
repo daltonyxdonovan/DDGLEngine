@@ -30,6 +30,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <SFML/Audio.hpp>
 
 bool CheckGLErrors(const char *function, const char *file, int line)
 {
@@ -1062,6 +1063,238 @@ const bool PRINTLOOPLOG = false; // for debugging loop  in program
 
 bool placingObject = false;
 int objectOffset = -1;
+sf::SoundBuffer buffer;
+
+
+void UpdateRotation(Cube* cubeLookingAt, std::vector<Cube>& voxels)
+{
+    std::vector<glm::vec3> points;
+    glm::vec3 pos = glm::vec3(0);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
+    points.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
+    pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
+    pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
+    points.push_back(pos);
+
+    for (int i = 0; i < points.size(); i++)
+    {
+        RotatePoint(points[i], voxels[cubeLookingAt->index].position,
+                    voxels[cubeLookingAt->index].rotation);
+    }
+
+    voxels[cubeLookingAt->index].collider.setRotation(voxels[cubeLookingAt->index].rotation);
+
+    voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
+    voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
+    voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
+    voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
+    voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
+    voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
+    voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
+    voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
+    voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
+    voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
+    voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
+    voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
+    voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
+    voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
+    voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
+    voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
+    voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
+    voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
+    voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
+    voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
+    voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
+    voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
+    voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
+    voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
+    voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
+    voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
+    voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
+    voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
+    voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
+    voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
+    voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
+    voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
+    voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
+    voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
+    voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
+    voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
+    voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
+    voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
+    voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
+    voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
+    voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
+    voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
+    voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
+    voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
+    voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
+    voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
+    voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
+
+    voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
+    voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
+    voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+}
 
 std::vector<int> heartImages = {2, 3, 4, 5, 6};
 
@@ -1113,7 +1346,12 @@ void Sap(int amount)
 
 int main()
 {
-
+    if (!buffer.loadFromFile("res/sounds/blipSelect.wav"))
+    {
+        std::cout << "couldn't load sound" << std::endl;
+    }
+    sf::Sound sound;
+    sound.setBuffer(buffer);
 #pragma region INITIALIZATION
 
 #pragma region MAPSETUP
@@ -1617,6 +1855,7 @@ int main()
         {
             showDebugCooldown = 30;
             showDebugInfo = !showDebugInfo;
+            sound.play();
         }
 
         if (camera.position.y < -50)
@@ -2155,230 +2394,7 @@ int main()
                         xrot -= 0.5f;
                         cubeLookingAt->rotation.x = xrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        UpdateRotation(cubeLookingAt, voxels);
 
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2389,230 +2405,7 @@ int main()
                 {
                     cubeLookingAt->rotation.x = xrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    std::vector<glm::vec3> points;
-                    glm::vec3 pos = glm::vec3(0);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                    points.push_back(pos);
-
-                    for (int i = 0; i < points.size(); i++)
-                    {
-                        RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                    voxels[cubeLookingAt->index].rotation);
-                    }
-
-                    voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                    voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                    voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                    voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                    voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                    voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                    voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                    voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                    voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                    voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                    voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                    voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                    voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                    voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                    voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                    voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                    voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                    voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                    voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                    voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                    voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                    voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                    voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                    voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                    voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                    voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                    voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                    voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                    voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                    voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                    voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                    voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                    voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                    voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                    voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                    voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                    voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                    voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                    voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                    voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                    voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                    voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                    voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                    voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                    voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                    voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                    voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                    voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                    voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        UpdateRotation(cubeLookingAt, voxels);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2624,230 +2417,8 @@ int main()
                         xrot += 0.5f;
                         cubeLookingAt->rotation.x = xrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        
+                        UpdateRotation(cubeLookingAt, voxels);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2862,230 +2433,8 @@ int main()
                         yrot -= 0.5f;
                         cubeLookingAt->rotation.y = yrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        
+                        UpdateRotation(cubeLookingAt, voxels);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -3095,230 +2444,8 @@ int main()
                 {
                     cubeLookingAt->rotation.y = yrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    std::vector<glm::vec3> points;
-                    glm::vec3 pos = glm::vec3(0);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                    points.push_back(pos);
-
-                    for (int i = 0; i < points.size(); i++)
-                    {
-                        RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                    voxels[cubeLookingAt->index].rotation);
-                    }
-
-                    voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                    voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                    voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                    voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                    voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                    voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                    voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                    voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                    voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                    voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                    voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                    voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                    voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                    voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                    voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                    voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                    voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                    voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                    voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                    voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                    voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                    voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                    voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                    voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                    voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                    voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                    voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                    voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                    voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                    voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                    voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                    voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                    voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                    voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                    voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                    voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                    voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                    voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                    voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                    voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                    voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                    voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                    voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                    voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                    voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                    voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                    voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                    voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                    voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                    
+                        UpdateRotation(cubeLookingAt, voxels);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -3330,230 +2457,8 @@ int main()
                         yrot += 0.5f;
                         cubeLookingAt->rotation.y = yrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        
+                        UpdateRotation(cubeLookingAt, voxels);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -3568,230 +2473,8 @@ int main()
                         zrot -= 0.5f;
                         cubeLookingAt->rotation.z = zrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        
+                        UpdateRotation(cubeLookingAt, voxels);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -3801,230 +2484,8 @@ int main()
                 {
                     cubeLookingAt->rotation.z = zrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    std::vector<glm::vec3> points;
-                    glm::vec3 pos = glm::vec3(0);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                    points.push_back(pos);
-
-                    pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                    pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                    pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                    points.push_back(pos);
-
-                    for (int i = 0; i < points.size(); i++)
-                    {
-                        RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                    voxels[cubeLookingAt->index].rotation);
-                    }
-
-                    voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                    voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                    voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                    voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                    voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                    voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                    voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                    voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                    voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                    voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                    voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                    voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                    voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                    voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                    voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                    voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                    voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                    voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                    voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                    voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                    voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                    voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                    voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                    voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                    voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                    voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                    voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                    voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                    voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                    voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                    voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                    voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                    voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                    voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                    voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                    voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                    voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                    voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                    voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                    voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                    voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                    voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                    voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                    voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                    voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                    voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                    voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                    voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                    voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                    voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                    
+                        UpdateRotation(cubeLookingAt, voxels);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -4036,230 +2497,8 @@ int main()
                         zrot += 0.5f;
                         cubeLookingAt->rotation.z = zrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        std::vector<glm::vec3> points;
-                        glm::vec3 pos = glm::vec3(0);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[1];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[2];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[10];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[11];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[12];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[20];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[21];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[22];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[30];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[31];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[32];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[40];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[41];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[42];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[50];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[51];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[52];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[60];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[61];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[62];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[70];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[71];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[72];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[80];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[81];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[82];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[90];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[91];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[92];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[100];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[101];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[102];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[110];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[111];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[112];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[120];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[121];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[122];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[130];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[131];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[132];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[140];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[141];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[142];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[150];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[151];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[152];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[160];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[161];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[162];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[170];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[171];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[172];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[180];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[181];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[182];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[190];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[191];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[192];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[200];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[201];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[202];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[210];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[211];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[212];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[220];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[221];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[222];
-                        points.push_back(pos);
-
-                        pos.x = voxels[cubeLookingAt->index].cornerPositions[230];
-                        pos.y = voxels[cubeLookingAt->index].cornerPositions[231];
-                        pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
-                        points.push_back(pos);
-
-                        for (int i = 0; i < points.size(); i++)
-                        {
-                            RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                                        voxels[cubeLookingAt->index].rotation);
-                        }
-
-                        voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
-                        voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
-                        voxels[cubeLookingAt->index].cornerPositions[2] = points[0].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[10] = points[1].x;
-                        voxels[cubeLookingAt->index].cornerPositions[11] = points[1].y;
-                        voxels[cubeLookingAt->index].cornerPositions[12] = points[1].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[20] = points[2].x;
-                        voxels[cubeLookingAt->index].cornerPositions[21] = points[2].y;
-                        voxels[cubeLookingAt->index].cornerPositions[22] = points[2].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[30] = points[3].x;
-                        voxels[cubeLookingAt->index].cornerPositions[31] = points[3].y;
-                        voxels[cubeLookingAt->index].cornerPositions[32] = points[3].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[40] = points[4].x;
-                        voxels[cubeLookingAt->index].cornerPositions[41] = points[4].y;
-                        voxels[cubeLookingAt->index].cornerPositions[42] = points[4].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[50] = points[5].x;
-                        voxels[cubeLookingAt->index].cornerPositions[51] = points[5].y;
-                        voxels[cubeLookingAt->index].cornerPositions[52] = points[5].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[60] = points[6].x;
-                        voxels[cubeLookingAt->index].cornerPositions[61] = points[6].y;
-                        voxels[cubeLookingAt->index].cornerPositions[62] = points[6].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[70] = points[7].x;
-                        voxels[cubeLookingAt->index].cornerPositions[71] = points[7].y;
-                        voxels[cubeLookingAt->index].cornerPositions[72] = points[7].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[80] = points[8].x;
-                        voxels[cubeLookingAt->index].cornerPositions[81] = points[8].y;
-                        voxels[cubeLookingAt->index].cornerPositions[82] = points[8].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[90] = points[9].x;
-                        voxels[cubeLookingAt->index].cornerPositions[91] = points[9].y;
-                        voxels[cubeLookingAt->index].cornerPositions[92] = points[9].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[100] = points[10].x;
-                        voxels[cubeLookingAt->index].cornerPositions[101] = points[10].y;
-                        voxels[cubeLookingAt->index].cornerPositions[102] = points[10].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[110] = points[11].x;
-                        voxels[cubeLookingAt->index].cornerPositions[111] = points[11].y;
-                        voxels[cubeLookingAt->index].cornerPositions[112] = points[11].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[120] = points[12].x;
-                        voxels[cubeLookingAt->index].cornerPositions[121] = points[12].y;
-                        voxels[cubeLookingAt->index].cornerPositions[122] = points[12].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[130] = points[13].x;
-                        voxels[cubeLookingAt->index].cornerPositions[131] = points[13].y;
-                        voxels[cubeLookingAt->index].cornerPositions[132] = points[13].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[140] = points[14].x;
-                        voxels[cubeLookingAt->index].cornerPositions[141] = points[14].y;
-                        voxels[cubeLookingAt->index].cornerPositions[142] = points[14].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[150] = points[15].x;
-                        voxels[cubeLookingAt->index].cornerPositions[151] = points[15].y;
-                        voxels[cubeLookingAt->index].cornerPositions[152] = points[15].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[160] = points[16].x;
-                        voxels[cubeLookingAt->index].cornerPositions[161] = points[16].y;
-                        voxels[cubeLookingAt->index].cornerPositions[162] = points[16].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[170] = points[17].x;
-                        voxels[cubeLookingAt->index].cornerPositions[171] = points[17].y;
-                        voxels[cubeLookingAt->index].cornerPositions[172] = points[17].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[180] = points[18].x;
-                        voxels[cubeLookingAt->index].cornerPositions[181] = points[18].y;
-                        voxels[cubeLookingAt->index].cornerPositions[182] = points[18].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[190] = points[19].x;
-                        voxels[cubeLookingAt->index].cornerPositions[191] = points[19].y;
-                        voxels[cubeLookingAt->index].cornerPositions[192] = points[19].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[200] = points[20].x;
-                        voxels[cubeLookingAt->index].cornerPositions[201] = points[20].y;
-                        voxels[cubeLookingAt->index].cornerPositions[202] = points[20].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[210] = points[21].x;
-                        voxels[cubeLookingAt->index].cornerPositions[211] = points[21].y;
-                        voxels[cubeLookingAt->index].cornerPositions[212] = points[21].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[220] = points[22].x;
-                        voxels[cubeLookingAt->index].cornerPositions[221] = points[22].y;
-                        voxels[cubeLookingAt->index].cornerPositions[222] = points[22].z;
-
-                        voxels[cubeLookingAt->index].cornerPositions[230] = points[23].x;
-                        voxels[cubeLookingAt->index].cornerPositions[231] = points[23].y;
-                        voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
+                        
+                        UpdateRotation(cubeLookingAt, voxels);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }

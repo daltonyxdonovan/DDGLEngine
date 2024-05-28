@@ -18,4 +18,4 @@ g++ -o DDGL \
     CubeCollider.cpp \
     imgui_impl_opengl3.cpp \
     imgui_stdlib.cpp \
-    -lGLEW -lglfw -lGL -lX11 -lpthread -lXrandr
+    -lGLEW -lglfw -lGL -lX11 -lpthread -lXrandr -lsfml-audio -lsfml-system

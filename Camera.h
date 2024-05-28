@@ -172,15 +172,15 @@ class Camera
         }*/
         if (isRunning && !needsRecharging)
         {
-            cameraSpeed = 500 * dt;
+            cameraSpeed = 300 * dt;
         }
         else if (!isRunning && !needsRecharging)
         {
-            cameraSpeed = 250 * dt;
+            cameraSpeed = 150 * dt;
         }
         else if (recharging || (needsRecharging))
         {
-            cameraSpeed = 100 * dt;
+            cameraSpeed = 50 * dt;
         }
 
         if (cooldown > 0)
@@ -292,7 +292,7 @@ class Camera
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
-            glm::vec3 movement = dt * cameraSpeed * glm::normalize(target - position);
+            glm::vec3 movement = dt * (cameraSpeed * glm::normalize(target - position));
             movement.y = 0;
 
             velocity += movement;
@@ -303,7 +303,7 @@ class Camera
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
-            glm::vec3 movement = dt * cameraSpeed * glm::normalize(target - position);
+            glm::vec3 movement = dt * (cameraSpeed * glm::normalize(target - position));
             movement.y = 0;
             velocity -= movement;
             moveBackward = true;
@@ -311,7 +311,7 @@ class Camera
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
-            glm::vec3 movement = dt * cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
+            glm::vec3 movement = dt * (cameraSpeed * glm::normalize(glm::cross(target - position, worldUp)));
             movement.y = 0;
             velocity -= movement;
             moveLeft = true;
@@ -319,7 +319,7 @@ class Camera
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
-            glm::vec3 movement = dt * cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
+            glm::vec3 movement = dt * (cameraSpeed * glm::normalize(glm::cross(target - position, worldUp)));
             movement.y = 0;
             velocity += movement;
             moveRight = true;

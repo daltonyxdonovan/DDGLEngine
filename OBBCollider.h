@@ -9,6 +9,7 @@
 #include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <limits>
+#include <glm/gtx/euler_angles.hpp>
 #include <vector>
 
 class OBBCollider
@@ -25,6 +26,15 @@ class OBBCollider
     OBBCollider(const glm::vec3 &pos, const glm::vec3 &halfSize, const glm::mat3 &orient)
         : position(pos), size(halfSize), orientation(orient)
     {
+    }
+
+    void setRotation(const glm::vec3 &rotation)
+    {
+        // Create a rotation matrix from the Euler angles (assuming rotation is in radians)
+        glm::mat4 rotationMatrix = glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);
+
+        // Update the orientation matrix (taking the upper-left 3x3 part of the 4x4 matrix)
+        orientation = glm::mat3(rotationMatrix);
     }
 
     bool OverlapOnAxis(const OBBCollider &other, const glm::vec3 &axis) const

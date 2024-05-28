@@ -3,4 +3,4 @@ Position: 0 9 0
 Direction: 1 0 1
 RGBA: 1 1 1 1
 Down: true
-Brightness: 15.6
+Brightness: 25
