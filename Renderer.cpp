@@ -1,23 +1,18 @@
 #include "Renderer.h"
-#include <iostream>
-#include "Shader.h"
-#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Shader.h"
 #include "VertexArray.h"
+#include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
-
-
-
-
+#include <iostream>
 
 void GLClearError()
 {
-    while (glGetError() != GL_NO_ERROR);
-
-
+    while (glGetError() != GL_NO_ERROR)
+        ;
 }
 
-bool GLLogCall(const char* function, const char* file, int line)
+bool GLLogCall(const char *function, const char *file, int line)
 {
     while (GLenum error = glGetError())
     {
@@ -32,17 +27,16 @@ void Renderer::Clear() const
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+void Renderer::Draw(const VertexArray &va, const IndexBuffer &ib, const Shader &shader) const
 {
     shader.Bind();
     va.Bind();
     ib.Bind();
 
-    
     glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr);
 }
 
-void Renderer::DrawLine(const glm::vec2& start, const glm::vec2& end, const glm::vec4& color) const
+void Renderer::DrawLine(const glm::vec2 &start, const glm::vec2 &end, const glm::vec4 &color) const
 {
     // Define the vertices for the line
     float vertices[4] = {start.x, start.y, end.x, end.y};
@@ -55,7 +49,7 @@ void Renderer::DrawLine(const glm::vec2& start, const glm::vec2& end, const glm:
     layout.Push(GL_FLOAT, 2); // position
 
     // Create a vertex array and bind the vertex buffer to it
-    VertexArray va;
+    VertexArray va(1);
     va.AddBuffer(vb, layout);
 
     // Set the line color using OpenGL's immediate mode
@@ -67,4 +61,3 @@ void Renderer::DrawLine(const glm::vec2& start, const glm::vec2& end, const glm:
     glVertex2f(end.x, end.y);
     glEnd();
 }
-

@@ -19,8 +19,11 @@ class VertexBuffer
     void UpdateBuffer(float data[], unsigned int size, unsigned int offset);
     void UpdateChosen(int index, float chosen, int stride);
     void UpdateScale(int index, glm::vec3 positionOfCube, float xScale, float yScale, float zScale, int stride);
+    void UpdateRotation(int index, glm::vec3 positionOfCube, glm::vec3 positionToRotateAround, glm::vec3 rotationAmount,
+                        int stride);
     void SetPosition(int index, float x, float y, float z, int stride);
     void AddVoxel(int index, int totalVoxelsAmount, int stride, float *cornerPositions);
     void UpdateTexture(int index, float textureID, int stride);
     void AddData(float data[], unsigned int size);
+    void UpdatePositionUI(int index, glm::vec3 positionOfCube, int stride);
 };

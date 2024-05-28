@@ -1,6 +1,9 @@
 
 #include "VertexBuffer.h"
 #include "Renderer.h"
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 VertexBuffer::VertexBuffer(float data[], unsigned int size)
 {
@@ -157,6 +160,35 @@ void VertexBuffer::AddData(float data[], unsigned int size)
     glBufferSubData(GL_ARRAY_BUFFER, currentSize * sizeof(float), size * sizeof(float), data);
 }
 
+void VertexBuffer::UpdatePositionUI(int index, glm::vec3 positionOfCube, int stride2)
+{
+    int xScale = 1;
+    int yScale = 1;
+    int zScale = 1;
+    unsigned int baseOffset = index * 36; // Each cube has 240 floats
+    float updatedData[3];
+
+    updatedData[0] = -1 * xScale + positionOfCube.x;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
+    UpdateBuffer(updatedData, 3, baseOffset);
+
+    updatedData[0] = 1 * xScale + positionOfCube.x;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
+    UpdateBuffer(updatedData, 3, baseOffset + stride2);
+
+    updatedData[0] = 1 * xScale + positionOfCube.x;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
+    UpdateBuffer(updatedData, 3, baseOffset + stride2 * 2);
+
+    updatedData[0] = -1 * xScale + positionOfCube.x;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
+    UpdateBuffer(updatedData, 3, baseOffset + stride2 * 3);
+}
+
 void VertexBuffer::UpdateScale(int index, glm::vec3 positionOfCube, float xScale, float yScale, float zScale,
                                int stride)
 {
@@ -282,6 +314,45 @@ void VertexBuffer::UpdateScale(int index, glm::vec3 positionOfCube, float xScale
     updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 23);
+}
+
+void VertexBuffer::UpdateRotation(int index, glm::vec3 positionOfCube, glm::vec3 positionToRotateAround,
+                                  glm::vec3 rotationAmount, int stride)
+{
+    unsigned int baseOffset = index * 360; // Each cube has 240 floats
+    float updatedData[3];
+
+    // Create rotation matrices for each axis
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAmount.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAmount.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(rotationAmount.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    // Combine the rotations into a single transformation matrix
+    glm::mat4 rotationMatrix = rotationZ * rotationY * rotationX;
+
+    for (int i = 0; i < 24; i++)
+    {
+        // Determine the local position of each vertex of the cube
+        glm::vec3 localPos = glm::vec3((i & 1 ? 1.0f : -1.0f), (i & 2 ? 1.0f : -1.0f), (i & 4 ? 1.0f : -1.0f));
+
+        // Scale the local position
+        glm::vec3 scaledPos = localPos * glm::vec3(positionOfCube);
+
+        // Translate to the rotation point
+        glm::vec3 translatedPos = scaledPos - positionToRotateAround;
+
+        // Apply rotation
+        glm::vec4 rotatedPos = rotationMatrix * glm::vec4(translatedPos, 1.0f);
+
+        // Translate back
+        glm::vec3 finalPos = glm::vec3(rotatedPos) + positionToRotateAround;
+
+        // Store the updated position in the buffer
+        updatedData[0] = finalPos.x;
+        updatedData[1] = finalPos.y;
+        updatedData[2] = finalPos.z;
+        UpdateBuffer(updatedData, 3, baseOffset + stride * i);
+    }
 }
 
 void SetPosition(int index, float x, float y, float z, int stride)

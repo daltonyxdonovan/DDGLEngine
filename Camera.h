@@ -87,7 +87,7 @@ class Camera
         return front;
     }
 
-    void Update(GLFWwindow *window, float dt, bool &isMouseActive)
+    void Update(GLFWwindow *window, float dt, bool &isMouseActive, int energy, bool recharging, bool needsRecharging)
     {
         // if (dt > 0.016f)
         //     dt = 0.016f;
@@ -156,7 +156,7 @@ class Camera
         }
 
         // if leftShift is pressed, run
-        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        if ((!needsRecharging || isFlying) && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         {
             isRunning = true;
         }
@@ -169,13 +169,17 @@ class Camera
             isRunning = true;
             cameraSpeed = .04f;
         }*/
-        if (isRunning)
+        if (isRunning && !needsRecharging)
         {
             cameraSpeed = 500 * dt;
         }
-        else
+        else if (!isRunning && !needsRecharging)
         {
             cameraSpeed = 250 * dt;
+        }
+        else if (recharging || (needsRecharging))
+        {
+            cameraSpeed = 100 * dt;
         }
 
         if (cooldown > 0)

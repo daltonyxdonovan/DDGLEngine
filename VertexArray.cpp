@@ -1,13 +1,13 @@
 #include "VertexArray.h"
-#include "VertexBufferLayout.h"
 #include "Renderer.h"
+#include "VertexBufferLayout.h"
 #include <vector>
 
 #include <iostream>
 
-VertexArray::VertexArray()
+VertexArray::VertexArray(int VAO)
 {
-    glGenVertexArrays(1, &m_RendererID);
+    glGenVertexArrays(VAO, &m_RendererID);
 }
 
 VertexArray::~VertexArray()
@@ -22,35 +22,37 @@ void VertexArray::Bind() const
 
 void VertexArray::Unbind() const
 {
-    glBindVertexArray(0);
+    glBindVertexArray(1);
 }
 
-void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
+void VertexArray::AddBuffer(const VertexBuffer &vb, const VertexBufferLayout &layout)
 {
     Bind();
     vb.Bind();
-    const auto& elements = layout.GetElements();
+    const auto &elements = layout.GetElements();
     GLintptr offset = 0;
     for (unsigned int i = 0; i < elements.size(); i++)
     {
-        const auto& element = elements[i];
+        const auto &element = elements[i];
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), reinterpret_cast<const void*>(offset));
+        glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(),
+                              reinterpret_cast<const void *>(offset));
         offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
-    }   
+    }
 }
 
-void VertexArray::UpdateBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
+void VertexArray::UpdateBuffer(const VertexBuffer &vb, const VertexBufferLayout &layout)
 {
     Bind();
     vb.Bind();
-    const auto& elements = layout.GetElements();
+    const auto &elements = layout.GetElements();
     GLintptr offset = 0;
     for (unsigned int i = 0; i < elements.size(); i++)
     {
-       const auto& element = elements[i];
-       glEnableVertexAttribArray(i);
-       glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), reinterpret_cast<const void*>(offset));
-       offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
+        const auto &element = elements[i];
+        glEnableVertexAttribArray(i);
+        glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(),
+                              reinterpret_cast<const void *>(offset));
+        offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
     }
 }

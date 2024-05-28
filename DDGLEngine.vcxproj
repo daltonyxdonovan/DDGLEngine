@@ -105,15 +105,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLEW_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;SFML_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\dalto\OneDrive\Documents\glm;C:\Users\dalto\source\repos\daltonyxdonovan\DDGLEngine\glm;C:\Users\dalto\OneDrive\Documents\glfw-3.4.bin.WIN64\include;C:\Users\dalto\OneDrive\Documents\glew-2.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\dalto\OneDrive\Documents\SFML-2.6.1\include;C:\Users\dalto\OneDrive\Documents\glm;C:\Users\dalto\source\repos\daltonyxdonovan\DDGLEngine\glm;C:\Users\dalto\OneDrive\Documents\glfw-3.4.bin.WIN64\include;C:\Users\dalto\OneDrive\Documents\glew-2.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\dalto\OneDrive\Documents\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\dalto\OneDrive\Documents\glew-2.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\dalto\OneDrive\Documents\SFML-2.6.1\lib;C:\Users\dalto\OneDrive\Documents\glfw-3.4.bin.WIN64\lib-vc2022;C:\Users\dalto\OneDrive\Documents\glew-2.1.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -191,6 +191,7 @@
     <None Include="make" />
     <None Include="makewin" />
     <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\UI.shader" />
     <None Include="visualinfo.exe" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
