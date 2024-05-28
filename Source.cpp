@@ -64,6 +64,8 @@ glm::vec3 sizeToSave = glm::vec3(1, 1, 1);
 float ambientLightLevel = 0.1f;
 int currentLevel = 0;
 int maxLevelAllowed = 9;
+bool showDebugInfo = true;
+int showDebugCooldown = 0;
 
 #pragma region CLASSES/METHODS
 
@@ -1407,6 +1409,8 @@ int main()
             healthCooldown--;
         if (energyCooldown > 0)
             energyCooldown--;
+        if (showDebugCooldown > 0)
+            showDebugCooldown--;
         if (needsRecharging)
             recharging = true;
         if (recharging)
@@ -1676,6 +1680,12 @@ int main()
             mouseControl = true;
         }
 
+        if (showDebugCooldown == 0 && glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
+        {
+            showDebugCooldown = 30;
+            showDebugInfo = !showDebugInfo;
+        }
+
         if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         {
             Damage(1);
@@ -1845,173 +1855,175 @@ int main()
 
         ImGui::NewFrame();
 
-#pragma region CameraInfo
-
-        int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
-        /*if (distance < 10)
-        {
-            camera.position = glm::vec3(-185, 70, 50);
-            if (currentLevel < maxLevelAllowed)
-                currentLevel++;
-            std::string levelName = "res/mapVoxels" + std::to_string(currentLevel) + ".txt";
-            voxels = LoadCubesFromFile(levelName);
-            for (int i = 0; i < voxels.size(); i++)
-            {
-                voxels[i].collider.UpdateScale(voxels[i].scale);
-                voxels[i].collider.setPosition(voxels[i].position);
-            }
-        }*/
-
-        ImGui::Begin("CAMERA", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-
-        // Title
-        ImGui::Text("Camera Information");
-        ImGui::Separator();
-        ImGui::Spacing();
-        ImGui::Text("  feetOnFloor: %d", camera.numOfFeetOnGround);
-        ImGui::Text("  feetOnFloor-Collider: %d", numOfFeetOnGround);
-        ImGui::Spacing();
-
-        // Position
-        ImGui::Text("Position:");
-        ImGui::Text("  X: %d", (int)camera.position.x);
-        ImGui::Text("  Y: %d", (int)camera.position.y);
-        ImGui::Text("  Z: %d", (int)camera.position.z);
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // Orientation
-        ImGui::Text("Orientation:");
-        ImGui::Text("  Yaw: %d", (int)camera.yaw);
-        ImGui::Text("  Pitch: %d", (int)camera.pitch);
-        ImGui::Text("  Roll: %d", (int)camera.roll);
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // Flags
-        ImGui::Text("Status Flags:");
-        ImGui::Text("  Mouse Control: %s", mouseControl ? "True" : "False");
-        ImGui::Text("  On Ground: %s", onGround ? "True" : "False");
-        ImGui::Text("  Jumping: %s", camera.isJumping ? "True" : "False");
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // Velocity
-        ImGui::Text("Velocity:");
-        ImGui::Text("  Y Velocity: %.1f", camera.yVelocity);
-        ImGui::Spacing();
-
-        const int sliderCenter = 0; // Initial value set to center
-        int sliderValueYs = camera.fov;
-
-        if (ImGui::Button("<##FOV"))
-        {
-            if (camera.fov > 25)
-            {
-                camera.fov--;
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::DragInt("FOV", &sliderValueYs, 1.0f, 25, 180))
-        {
-            camera.fov = sliderValueYs;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(">##FOV"))
-        {
-            if (camera.fov < 180)
-            {
-                camera.fov++;
-            }
-        }
-
-        ImGui::Spacing();
-
-        float sliderValueYe = camera.heighte;
-
-        if (ImGui::Button("<##Height"))
-        {
-            if (camera.heighte > .1f)
-            {
-                camera.heighte -= 0.1f;
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::DragFloat("Height", &sliderValueYe, .1f, .1f, 10.f))
-        {
-            camera.heighte = sliderValueYe;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(">##Height"))
-        {
-            if (camera.heighte < 10.f)
-            {
-                camera.heighte += 0.1f;
-            }
-        }
-
-        ImGui::Spacing();
-
-        float sliderValueYz = ambientLightLevel;
-
-        if (ImGui::Button("<##Ambient Light"))
-        {
-            if (ambientLightLevel > 0)
-            {
-                ambientLightLevel -= 0.01;
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::DragFloat("Ambient Light", &sliderValueYz, 0.01f, 0, 1))
-        {
-            ambientLightLevel = sliderValueYz;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(">##Ambient Light"))
-        {
-            if (ambientLightLevel < 1)
-            {
-                ambientLightLevel += 0.01;
-            }
-        }
-
-        ImGui::Spacing();
-
-        // Flying Checkbox
-        if (ImGui::Checkbox("Flying?", &camera.isFlying))
-        {
-            // Handle the change in flying status
-        }
-
-        // End window
-        ImGui::End();
-#pragma endregion CameraInfo
-
-#pragma region SceneInfo
-
-        ImGui::Begin("SceneInfo", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Objects: %lu", voxels.size());
-        ImGui::Text("Indices: %d", indicesCount);
-        ImGui::Text("Triangles: %lu", voxels.size() * 12);
-        ImGui::Text("Lights: %lu", lights.size());
-        ImGui::Text("Images: %lu", images.size());
-        // Calculate and display FPS
-        static float fps = 0.0f;
-        static float lastFrameTime = 0.0f;
-        const float now = glfwGetTime(); // Assuming you're using GLFW
-        fps = 1.0f / (now - lastFrameTime);
-        lastFrameTime = now;
-        ImGui::Text("FPS: %.1f", fps);
-        ImGui::End();
-
-#pragma endregion SceneInfo
-
-#pragma region Health
-        // Set window flags to make the window invisible except for the image
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                                         ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse |
                                         ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs;
+        if (showDebugInfo)
+        {
+
+#pragma region CameraInfo
+
+            int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
+            /*if (distance < 10)
+            {
+                camera.position = glm::vec3(-185, 70, 50);
+                if (currentLevel < maxLevelAllowed)
+                    currentLevel++;
+                std::string levelName = "res/mapVoxels" + std::to_string(currentLevel) + ".txt";
+                voxels = LoadCubesFromFile(levelName);
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    voxels[i].collider.UpdateScale(voxels[i].scale);
+                    voxels[i].collider.setPosition(voxels[i].position);
+                }
+            }*/
+
+            ImGui::Begin("CAMERA", NULL, window_flags);
+
+            // Title
+            ImGui::Text("Camera Information");
+            ImGui::Separator();
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Position
+            ImGui::Text("Position:");
+            ImGui::Text("  X: %d", (int)camera.position.x);
+            ImGui::Text("  Y: %d", (int)camera.position.y);
+            ImGui::Text("  Z: %d", (int)camera.position.z);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Orientation
+            ImGui::Text("Orientation:");
+            ImGui::Text("  Yaw: %d", (int)camera.yaw);
+            ImGui::Text("  Pitch: %d", (int)camera.pitch);
+            ImGui::Text("  Roll: %d", (int)camera.roll);
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Flags
+            ImGui::Text("Status Flags:");
+            ImGui::Text("  Mouse Control: %s", mouseControl ? "True" : "False");
+            ImGui::Text("  On Ground: %s", onGround ? "True" : "False");
+            ImGui::Text("  Jumping: %s", camera.isJumping ? "True" : "False");
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            // Velocity
+            ImGui::Text("Velocity:");
+            ImGui::Text("  Y Velocity: %.1f", camera.yVelocity);
+            ImGui::Spacing();
+
+            const int sliderCenter = 0; // Initial value set to center
+            int sliderValueYs = camera.fov;
+
+            if (ImGui::Button("<##FOV"))
+            {
+                if (camera.fov > 25)
+                {
+                    camera.fov--;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::DragInt("FOV", &sliderValueYs, 1.0f, 25, 180))
+            {
+                camera.fov = sliderValueYs;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(">##FOV"))
+            {
+                if (camera.fov < 180)
+                {
+                    camera.fov++;
+                }
+            }
+
+            ImGui::Spacing();
+
+            float sliderValueYe = camera.heighte;
+
+            if (ImGui::Button("<##Height"))
+            {
+                if (camera.heighte > .1f)
+                {
+                    camera.heighte -= 0.1f;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("Height", &sliderValueYe, .1f, .1f, 10.f))
+            {
+                camera.heighte = sliderValueYe;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(">##Height"))
+            {
+                if (camera.heighte < 10.f)
+                {
+                    camera.heighte += 0.1f;
+                }
+            }
+
+            ImGui::Spacing();
+
+            float sliderValueYz = ambientLightLevel;
+
+            if (ImGui::Button("<##Ambient Light"))
+            {
+                if (ambientLightLevel > 0)
+                {
+                    ambientLightLevel -= 0.01;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::DragFloat("Ambient Light", &sliderValueYz, 0.01f, 0, 1))
+            {
+                ambientLightLevel = sliderValueYz;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button(">##Ambient Light"))
+            {
+                if (ambientLightLevel < 1)
+                {
+                    ambientLightLevel += 0.01;
+                }
+            }
+
+            ImGui::Spacing();
+
+            // Flying Checkbox
+            if (ImGui::Checkbox("Flying?", &camera.isFlying))
+            {
+                // Handle the change in flying status
+            }
+
+            // End window
+            ImGui::End();
+#pragma endregion CameraInfo
+
+#pragma region SceneInfo
+
+            ImGui::Begin("SceneInfo", NULL, window_flags);
+            ImGui::Text("Objects: %lu", voxels.size());
+            ImGui::Text("Indices: %d", indicesCount);
+            ImGui::Text("Triangles: %lu", voxels.size() * 12);
+            ImGui::Text("Lights: %lu", lights.size());
+            ImGui::Text("Images: %lu", images.size());
+            // Calculate and display FPS
+            static float fps = 0.0f;
+            static float lastFrameTime = 0.0f;
+            const float now = glfwGetTime(); // Assuming you're using GLFW
+            fps = 1.0f / (now - lastFrameTime);
+            lastFrameTime = now;
+            ImGui::Text("FPS: %.1f", fps);
+            ImGui::End();
+
+#pragma endregion SceneInfo
+        }
+#pragma region Health
+        // Set window flags to make the window invisible except for the image
+
         int numHearts = maxHealth / 4;
         ImGui::SetNextWindowPos(ImVec2(20, 10));
         ImGui::SetNextWindowSize(ImVec2(30 * numHearts, 30));
@@ -2064,18 +2076,10 @@ int main()
         if (cubeLookingAt != nullptr)
         {
 
-            ImGui::Begin("CubeLookingAt", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            if (ImGui::Checkbox("Pin", &pinned))
-            {
-                // yes
-            }
+            ImGui::Begin("CubeLookingAt", NULL, window_flags);
+            ImGui::Checkbox("Pin", &pinned);
             ImGui::SameLine();
             ImGui::Text("VOXEL %d", cubeLookingAt->index);
-
-            ImGui::Spacing();
-
-            ImGui::Text("posLowest:               (%d,   %d,   %d)", (int)cubeLookingAt->positionLowest.x,
-                        (int)cubeLookingAt->positionLowest.y, (int)cubeLookingAt->positionLowest.z);
 
             ImGui::Spacing();
             ImGui::Text("Position:                    (%d,   %d,   %d)", (int)cubeLookingAt->position.x,
@@ -2212,7 +2216,7 @@ int main()
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::DragFloat("ROTX", &xrot, 0.5f, 0, 360))
+                if (ImGui::DragFloat("   ROTX", &xrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.x = xrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
@@ -2246,7 +2250,7 @@ int main()
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::DragFloat("ROTY", &yrot, 0.5f, 0, 360))
+                if (ImGui::DragFloat("   ROTY", &yrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.y = yrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
@@ -2280,7 +2284,7 @@ int main()
                     }
                 }
                 ImGui::SameLine();
-                if (ImGui::DragFloat("ROTZ", &zrot, 0.5f, 0, 360))
+                if (ImGui::DragFloat("   ROTZ", &zrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.z = zrot;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
@@ -2743,10 +2747,11 @@ int main()
             ImGui::Begin("PAUSED", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
             // Set font size to 20
-            ImGui::SetWindowFontScale(2.0f);
+            ImGui::SetWindowFontScale(1.0f);
 
             // Set window position to center
-            ImVec2 windowPos = ImVec2((width - ImGui::GetWindowWidth()) / 2, (height - ImGui::GetWindowHeight()) / 2);
+            ImVec2 windowPos =
+                ImVec2((width - ImGui::GetWindowWidth()) / 2, ((height - ImGui::GetWindowHeight()) / 2) + 250);
             ImGui::SetWindowPos(windowPos);
 
             ImGui::Spacing();
@@ -2858,11 +2863,6 @@ int main()
 
 #pragma endregion IMGUI
 
-        /*GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            std::cerr << "OpenGL error: " << err << std::endl;
-        }*/
         glfwSwapBuffers(window);
     }
     ImGui_ImplOpenGL3_Shutdown();
