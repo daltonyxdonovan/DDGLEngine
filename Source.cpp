@@ -1068,6 +1068,7 @@ int maxEnergy = 10;
 bool recharging = false;
 bool needsRecharging = false;
 int energyRechargeCooldown = 0;
+int numOfFeetOnGround = 0;
 
 const bool PRINTLOG = true;      // for debugging start of program
 const bool PRINTLOOPLOG = false; // for debugging loop  in program
@@ -1521,7 +1522,7 @@ int main()
         camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging);
         camera.collider.setPosition(camera.position + glm::vec3(0, -camera.heighte, 0));
         float val = camera.heighte;
-        glm::vec3 val2(val, val * 2, val);
+        glm::vec3 val2(val / 4, val * 2, val / 4);
         camera.collider.UpdateScale(val2);
 
         camera.pointXMinusColliding = false;
@@ -1569,6 +1570,7 @@ int main()
 
         if (PRINTLOOPLOG)
             std::cout << "resolving collisions finally" << std::endl;
+        numOfFeetOnGround = 0;
 
         for (int i = 0; i < voxelsCloseToPlayer.size(); i++)
         {
@@ -1587,6 +1589,8 @@ int main()
                     camera.yVelocity = 0;
                 }
                 camera.position += buffer;
+                if (buffer.y != 0 && buffer.z == 0 && buffer.x == 0)
+                    onGround = true;
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
                 if (voxelsCloseToPlayer[i]->textureIndex == 98)
                 {
@@ -1598,23 +1602,6 @@ int main()
                 !camera.collider.CheckCollision(voxels[voxelsCloseToPlayer[i]->index].collider))
             {
                 voxelsCloseToPlayer[i]->Decrease();
-            }
-
-            if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointXPlus))
-            {
-                camera.pointXPlusColliding = true;
-            }
-            if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointXMinus))
-            {
-                camera.pointXMinusColliding = true;
-            }
-            if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointZPlus))
-            {
-                camera.pointZPlusColliding = true;
-            }
-            if (!voxelsCloseToPlayer[i]->invisible && voxelsCloseToPlayer[i]->isPointInside(camera.pointZMinus))
-            {
-                camera.pointZMinusColliding = true;
             }
 
             bool isChosen = false;
@@ -1630,13 +1617,6 @@ int main()
                         cubeLookingAt = voxelsCloseToPlayer[i];
                     }
                 }
-            }
-
-            // //check if camera.positionFeet is inside the cube
-            if (!camera.getOnGround() &&
-                voxelsCloseToPlayer[i]->isPointInside(camera.positionFeet + glm::vec3(0, -.1, 0)))
-            {
-                onGround = true;
             }
         }
 
@@ -1888,6 +1868,8 @@ int main()
         ImGui::Text("Camera Information");
         ImGui::Separator();
         ImGui::Spacing();
+        ImGui::Text("  feetOnFloor: %d", camera.numOfFeetOnGround);
+        ImGui::Text("  feetOnFloor-Collider: %d", numOfFeetOnGround);
         ImGui::Spacing();
 
         // Position
