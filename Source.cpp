@@ -18,6 +18,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "src/Texture.h"
+#include <SFML/System.hpp>
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -30,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+
 #include <SFML/Audio.hpp>
 
 bool CheckGLErrors(const char *function, const char *file, int line)
@@ -86,6 +88,7 @@ class Cube
     int index = 0;
     bool invisible = false;
     std::vector<float> cornerPositions;
+    std::vector<float> cornerPositionsOriginal;
     Cube *parent = nullptr;
     std::vector<Cube *> children;
     std::vector<unsigned int> indices = {
@@ -227,6 +230,8 @@ class Cube
         };
 
         // clang-format on
+
+        cornerPositionsOriginal = cornerPositions;
     }
 
     void UpdateVertices()
@@ -349,35 +354,21 @@ void addNotification(std::string message, float time)
 
 bool needsRefresh = true;
 
-void RotatePoint(glm::vec3 &point, glm::vec3 pointRotatingAround, glm::vec3 amountOfRotation)
-{
-    // Convert the rotation amount to a quaternion
-    float angle = glm::length(amountOfRotation);
-    glm::vec3 normalizedAxis = glm::normalize(amountOfRotation);
-    glm::quat rotationQuat = glm::angleAxis(angle, normalizedAxis);
+void RotatePoint(glm::vec3 &point, const glm::vec3 &pointRotatingAround, const glm::vec3 &eulerRotation,
+                 const glm::vec3 &originalPosition)
 
-    // Translate the point so that pointRotatingAround is the origin
-    point -= pointRotatingAround;
+{
+    // Convert Euler angles (in degrees) to radians
+    glm::vec3 radiansRotation = glm::radians(eulerRotation);
+
+    // Convert Euler angles to a quaternion
+    glm::quat rotationQuat = glm::quat(radiansRotation);
 
     // Rotate the point using the quaternion
-    point = rotationQuat * point;
+    glm::vec3 rotatedPoint = rotationQuat * originalPosition;
 
     // Translate the point back to its original position
-    point += pointRotatingAround;
-}
-
-float calculatePenetrationDepth(const glm::vec3 &point, const Cube &voxel)
-{
-    // Calculate the closest point on the voxel to the point
-    glm::vec3 closestPointOnVoxel = glm::clamp(point, voxel.position - voxel.scale, voxel.position + voxel.scale);
-
-    // Calculate the difference vector between the point and the closest point on the voxel
-    glm::vec3 difference = closestPointOnVoxel - point;
-
-    // Calculate the length of the difference vector
-    float penetrationDepth = glm::length(difference);
-
-    return penetrationDepth;
+    point = rotatedPoint;
 }
 
 glm::vec3 CastPointForward(float distance, glm::vec3 startingPosition)
@@ -591,27 +582,6 @@ std::vector<Light *> LoadLightsFromFile(const std::string &filename)
 
     file.close();
     return lights;
-}
-
-void ConcatenateIndices(unsigned int *&indicesAfter2, unsigned int *indicesAfter, unsigned int length2,
-                        unsigned int length1)
-{
-    // Step 1: Determine the total length of the new array
-    unsigned int totalLength = length1 + length2;
-
-    // Step 2: Allocate a new array of the combined length
-    unsigned int *concatenatedArray = new unsigned int[totalLength];
-
-    // Step 3: Copy the contents of indicesAfter to the new array
-    std::memcpy(concatenatedArray, indicesAfter, length1 * sizeof(unsigned int));
-
-    // Step 4: Copy the contents of indicesAfter2 to the new array
-    std::memcpy(concatenatedArray + length1, indicesAfter2, length2 * sizeof(unsigned int));
-
-    // If you need to update indicesAfter2 to the new concatenated array
-    // and delete the old one, you can do so here:
-    delete[] indicesAfter2;
-    indicesAfter2 = concatenatedArray;
 }
 
 void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
@@ -1063,12 +1033,11 @@ const bool PRINTLOOPLOG = false; // for debugging loop  in program
 
 bool placingObject = false;
 int objectOffset = -1;
-sf::SoundBuffer buffer;
 
-
-void UpdateRotation(Cube* cubeLookingAt, std::vector<Cube>& voxels)
+void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 rotation)
 {
     std::vector<glm::vec3> points;
+    std::vector<glm::vec3> pointsOriginal;
     glm::vec3 pos = glm::vec3(0);
 
     pos.x = voxels[cubeLookingAt->index].cornerPositions[0];
@@ -1191,10 +1160,131 @@ void UpdateRotation(Cube* cubeLookingAt, std::vector<Cube>& voxels)
     pos.z = voxels[cubeLookingAt->index].cornerPositions[232];
     points.push_back(pos);
 
+    ///////////////////////
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[0];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[1];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[2];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[10];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[11];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[12];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[20];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[21];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[22];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[30];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[31];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[32];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[40];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[41];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[42];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[50];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[51];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[52];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[60];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[61];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[62];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[70];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[71];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[72];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[80];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[81];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[82];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[90];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[91];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[92];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[100];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[101];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[102];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[110];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[111];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[112];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[120];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[121];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[122];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[130];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[131];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[132];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[140];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[141];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[142];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[150];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[151];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[152];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[160];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[161];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[162];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[170];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[171];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[172];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[180];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[181];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[182];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[190];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[191];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[192];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[200];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[201];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[202];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[210];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[211];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[212];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[220];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[221];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[222];
+    pointsOriginal.push_back(pos);
+
+    pos.x = voxels[cubeLookingAt->index].cornerPositionsOriginal[230];
+    pos.y = voxels[cubeLookingAt->index].cornerPositionsOriginal[231];
+    pos.z = voxels[cubeLookingAt->index].cornerPositionsOriginal[232];
+    pointsOriginal.push_back(pos);
+
     for (int i = 0; i < points.size(); i++)
     {
-        RotatePoint(points[i], voxels[cubeLookingAt->index].position,
-                    voxels[cubeLookingAt->index].rotation);
+        RotatePoint(points[i], voxels[cubeLookingAt->index].position, rotation, pointsOriginal[i]);
     }
 
     voxels[cubeLookingAt->index].collider.setRotation(voxels[cubeLookingAt->index].rotation);
@@ -1298,7 +1388,6 @@ void UpdateRotation(Cube* cubeLookingAt, std::vector<Cube>& voxels)
 
 std::vector<int> heartImages = {2, 3, 4, 5, 6};
 
-// Function to get the correct image index for a given health value
 GLuint GetHeartImage(int health, std::vector<int> &heartImages)
 {
     if (health <= 0)
@@ -1346,12 +1435,15 @@ void Sap(int amount)
 
 int main()
 {
+    sf::SoundBuffer buffer;
+    std::cout << "starting main" << std::endl;
     if (!buffer.loadFromFile("res/sounds/blipSelect.wav"))
     {
         std::cout << "couldn't load sound" << std::endl;
     }
     sf::Sound sound;
     sound.setBuffer(buffer);
+
 #pragma region INITIALIZATION
 
 #pragma region MAPSETUP
@@ -1795,7 +1887,7 @@ int main()
                 glm::vec3 buffer = camera.collider.ResolveCollision(voxels[voxels[i].index].collider);
 
                 camera.position -= buffer;
-                if (buffer.y != 0 && buffer.z == 0 && buffer.x == 0)
+                if (buffer.y != 0)
                 {
                     onGround = true;
                     camera.onGround = true;
@@ -2393,8 +2485,10 @@ int main()
                     {
                         xrot -= 0.5f;
                         cubeLookingAt->rotation.x = xrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
 
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2404,8 +2498,10 @@ int main()
                 if (ImGui::DragFloat("   ROTX", &xrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.x = xrot;
+                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels);
+                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                    UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2416,9 +2512,10 @@ int main()
                     {
                         xrot += 0.5f;
                         cubeLookingAt->rotation.x = xrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2432,9 +2529,10 @@ int main()
                     {
                         yrot -= 0.5f;
                         cubeLookingAt->rotation.y = yrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2443,9 +2541,10 @@ int main()
                 if (ImGui::DragFloat("   ROTY", &yrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.y = yrot;
+                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    
-                        UpdateRotation(cubeLookingAt, voxels);
+                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                    UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2456,9 +2555,10 @@ int main()
                     {
                         yrot += 0.5f;
                         cubeLookingAt->rotation.y = yrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2472,9 +2572,10 @@ int main()
                     {
                         zrot -= 0.5f;
                         cubeLookingAt->rotation.z = zrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2483,9 +2584,10 @@ int main()
                 if (ImGui::DragFloat("   ROTZ", &zrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.z = zrot;
+                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    
-                        UpdateRotation(cubeLookingAt, voxels);
+                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                    UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2496,9 +2598,10 @@ int main()
                     {
                         zrot += 0.5f;
                         cubeLookingAt->rotation.z = zrot;
+                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        
-                        UpdateRotation(cubeLookingAt, voxels);
+                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+                        UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }

@@ -6,16 +6,17 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <limits>
-#include <glm/gtx/euler_angles.hpp>
 #include <vector>
 
 class OBBCollider
 {
   public:
     glm::vec3 position;
+    glm::vec3 rotation;
     glm::vec3 size; // Half-sizes
     glm::mat3 orientation;
 
@@ -30,6 +31,8 @@ class OBBCollider
 
     void setRotation(const glm::vec3 &rotation)
     {
+        this->rotation = rotation;
+        std::cout << rotation.x << ", " << rotation.y << ", " << rotation.z << std::endl;
         // Create a rotation matrix from the Euler angles (assuming rotation is in radians)
         glm::mat4 rotationMatrix = glm::eulerAngleYXZ(rotation.y, rotation.x, rotation.z);
 
@@ -120,6 +123,16 @@ class OBBCollider
     void setPosition(const glm::vec3 &newPosition)
     {
         position = newPosition;
+    }
+
+    bool IsPointInside(const glm::vec3 &point) const
+    {
+        // Transform the point to the OBB's local coordinate system
+        glm::vec3 localPoint = glm::transpose(orientation) * (point - position);
+
+        // Check if the local point is within the OBB's bounds
+        return (std::abs(localPoint.x) <= size.x && std::abs(localPoint.y) <= size.y &&
+                std::abs(localPoint.z) <= size.z);
     }
 
     bool CheckCollision(const OBBCollider &other) const
