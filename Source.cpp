@@ -1287,8 +1287,10 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
         RotatePoint(points[i], voxels[cubeLookingAt->index].position, rotation, pointsOriginal[i]);
     }
 
+    glm::mat4 rotationMatrix = glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+    glm::quat quaternion2 = glm::quat_cast(rotationMatrix);
 
-    voxels[cubeLookingAt->index].collider.SetOBBColliderFromCorners(voxels[cubeLookingAt->index].collider,points);
+    voxels[cubeLookingAt->index].collider.setRotation(quaternion2);
 
     voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
     voxels[cubeLookingAt->index].cornerPositions[1] = points[0].y;
@@ -1830,7 +1832,7 @@ int main()
             std::cout << "updating camera" << std::endl;
 
         camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging);
-        camera.collider.setPosition(camera.position + glm::vec3(0, -camera.heighte, 0));
+        camera.collider.setPosition(camera.position);
         float val = camera.heighte;
         glm::vec3 val2(val / 4, val * 2, val / 4);
         camera.collider.setSize(val2);
@@ -1879,6 +1881,12 @@ int main()
 
         for (int i = 0; i < voxels.size(); i++)
         {
+            glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
+            glm::mat4 rotationMatrix = glm::eulerAngleXYZ(radiansRotation.x, radiansRotation.y, radiansRotation.z);
+
+            glm::quat quaternion2 = glm::quat_cast(rotationMatrix);
+
+            voxels[i].collider.setRotation(quaternion2);
             bool colliding = false;
             // check if the camera's collider is colliding with the cube's collider
             if (!camera.isFlying && voxels[i].index != 0 && !voxels[i].invisible &&
@@ -2486,9 +2494,9 @@ int main()
                     {
                         xrot -= 0.5f;
                         cubeLookingAt->rotation.x = xrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
 
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
@@ -2499,9 +2507,9 @@ int main()
                 if (ImGui::DragFloat("   ROTX", &xrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.x = xrot;
-                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
@@ -2513,9 +2521,9 @@ int main()
                     {
                         xrot += 0.5f;
                         cubeLookingAt->rotation.x = xrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2530,9 +2538,9 @@ int main()
                     {
                         yrot -= 0.5f;
                         cubeLookingAt->rotation.y = yrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2542,9 +2550,9 @@ int main()
                 if (ImGui::DragFloat("   ROTY", &yrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.y = yrot;
-                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
@@ -2556,9 +2564,9 @@ int main()
                     {
                         yrot += 0.5f;
                         cubeLookingAt->rotation.y = yrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2573,9 +2581,9 @@ int main()
                     {
                         zrot -= 0.5f;
                         cubeLookingAt->rotation.z = zrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
@@ -2585,9 +2593,9 @@ int main()
                 if (ImGui::DragFloat("   ROTZ", &zrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.z = zrot;
-                    glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                    UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
@@ -2599,9 +2607,9 @@ int main()
                     {
                         zrot += 0.5f;
                         cubeLookingAt->rotation.z = zrot;
-                        glm::vec3 rotBuffer = cubeLookingAt->rotation;
+
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
-                        UpdateRotation(cubeLookingAt, voxels, rotBuffer);
+
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
