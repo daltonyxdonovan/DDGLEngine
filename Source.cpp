@@ -70,6 +70,9 @@ int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
 float stepHeight = 2.f;
+std::vector<std::string> inventory = {
+    "Red Key",
+};
 
 #pragma region CLASSES/METHODS
 
@@ -95,6 +98,9 @@ class Cube
     bool requiresRedKey = false;
     bool requiresGreenKey = false;
     bool requiresBlueKey = false;
+    bool liftingPlatform = false;
+    bool movingPlatform = false;
+    int direction = 0;
 
     std::vector<unsigned int> indices = {
         0,  1,  2,  2,  3,  0,  // front face
@@ -1408,6 +1414,15 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
 std::vector<int> heartImages = {2, 3, 4, 5, 6};
 std::vector<int> levelImages = {8, 9, 10, 11, 12, 13, 14, 15, 16, 15, 15, 15};
 
+bool HasInInventory(std::string whatToLookFor)
+{
+    // Find the iterator pointing to "Red Key" (if it exists)
+    auto it = std::find(inventory.begin(), inventory.end(), whatToLookFor);
+
+    // Check if the iterator reached the end (not found)
+    return it != inventory.end();
+}
+
 GLuint GetHeartImage(int health, std::vector<int> &heartImages)
 {
     if (health <= 0)
@@ -1913,11 +1928,90 @@ int main()
         {
             if (voxels[i].door)
             {
-                float distanceBetweenDoorAndPlayer = glm::distance(
-                    glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y, voxels[i].position.z),
-                    camera.position);
-                if (distanceBetweenDoorAndPlayer < 10)
-                    voxels[i].Increase();
+                if (voxels[i].requiresRedKey)
+                {
+                    if (HasInInventory("Red Key"))
+                    {
+
+                        float distanceBetweenDoorAndPlayer =
+                            glm::distance(glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y,
+                                                    voxels[i].position.z),
+                                          camera.position);
+                        if (distanceBetweenDoorAndPlayer < 10)
+                        {
+                            addNotification("Red Key found in Inventory!", 1);
+                            voxels[i].Increase();
+                        }
+                        else
+                        {
+                            voxels[i].Decrease();
+                        }
+                    }
+                    else
+                    {
+                        voxels[i].Decrease();
+                    }
+                }
+
+                else if (voxels[i].requiresGreenKey)
+                {
+                    if (HasInInventory("Green Key"))
+                    {
+
+                        float distanceBetweenDoorAndPlayer =
+                            glm::distance(glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y,
+                                                    voxels[i].position.z),
+                                          camera.position);
+                        if (distanceBetweenDoorAndPlayer < 10)
+                        {
+                            addNotification("Green Key found in Inventory!", 1);
+                            voxels[i].Increase();
+                        }
+                        else
+                        {
+                            voxels[i].Decrease();
+                        }
+                    }
+                    else
+                    {
+                        voxels[i].Decrease();
+                    }
+                }
+
+                else if (voxels[i].requiresBlueKey)
+                {
+                    if (HasInInventory("Blue Key"))
+                    {
+                        float distanceBetweenDoorAndPlayer =
+                            glm::distance(glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y,
+                                                    voxels[i].position.z),
+                                          camera.position);
+                        if (distanceBetweenDoorAndPlayer < 10)
+                        {
+                            addNotification("Blue Key found in Inventory!", 1);
+                            voxels[i].Increase();
+                        }
+                        else
+                        {
+                            voxels[i].Decrease();
+                        }
+                    }
+                    else
+                    {
+                        voxels[i].Decrease();
+                    }
+                }
+
+                else
+                {
+                    float distanceBetweenDoorAndPlayer = glm::distance(
+                        glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y, voxels[i].position.z),
+                        camera.position);
+                    if (distanceBetweenDoorAndPlayer < 10)
+                        voxels[i].Increase();
+                    else
+                        voxels[i].Decrease();
+                }
             }
             glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
             glm::mat4 rotationMatrix = glm::eulerAngleXYZ(radiansRotation.x, radiansRotation.y, radiansRotation.z);
@@ -1951,13 +2045,13 @@ int main()
                 }
 
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
-                if (voxels[i].textureIndex == 98)
+                if (voxels[i].liftingPlatform)
                 {
                     voxels[i].Increase();
                 }
             }
 
-            if (voxels[i].textureIndex == 98 && !camera.collider.CheckCollision(voxels[voxels[i].index].collider))
+            if (voxels[i].liftingPlatform && !camera.collider.CheckCollision(voxels[voxels[i].index].collider))
             {
                 voxels[i].Decrease();
             }
