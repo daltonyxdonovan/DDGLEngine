@@ -1,5 +1,5 @@
 Cube
-Position: 0 0 14
+Position: 14 2 -1
 Rotation: 0 0 0
 Scale: 1 1 1
 TextureIndex: 99

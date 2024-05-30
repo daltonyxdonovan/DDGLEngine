@@ -17,6 +17,8 @@ out float invisible;
 
 
 uniform mat4 u_MVP;
+out float cursor;
+
 
 void main()
 {
@@ -33,6 +35,9 @@ void main()
     int row = int(textureINT/10);
     offset = vec2(column,row);
     invisible = invis;
+    cursor = 0;
+    if (textureID > 98)
+        cursor = 1;
 }
 
 
@@ -56,6 +61,8 @@ uniform vec4 lightColor[256];
 uniform float lightBrightness[256];
 uniform int numLights;
 uniform float ambientLight;
+in float cursor;
+
 
 void main() {
     if (invisible != 0.0f)
@@ -71,39 +78,37 @@ void main() {
     {
         discard;
     }
-
-    vec3 fragPos = vec3(v_VertexX, v_VertexY, v_VertexZ);
-
-    // Check if the fragment position matches any light positions
-    for (int i = 0; i < numLights; i++) {
-        if (distance(fragPos, lightPos[i]) < 2) { // Adjust the threshold as needed
-            color = vec4(1.0, 1.0, 1.0, 1.0); // White color for light positions
-            return;
-        }
-    }
-
-    vec3 normal = normalize(normalVec);
-    vec3 ambient = vec3(ambientLight);
-
-
-    vec3 finalColor = vec3(0.0);
-
-
-    
-    for (int i = 0; i < numLights; i++) 
+    if (cursor < 1)
     {
-        vec3 lightDir = normalize(lightPos[i] - fragPos); // Calculate the direction from the fragment to the light source
-        float distance = length(lightPos[i] - fragPos); // Calculate the distance to the light source
-        float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance)); // Attenuation formula
+        vec3 fragPos = vec3(v_VertexX, v_VertexY, v_VertexZ);
 
-        float diff = max(dot(normal, lightDir), 0.0); // Calculate diffuse intensity
-        vec3 diffuse = diff * vec3(lightColor[i]) * lightBrightness[i]; // Use light color and apply brightness
-        finalColor += diffuse * attenuation; // Apply attenuation to diffuse lighting
+        // Check if the fragment position matches any light positions
+        for (int i = 0; i < numLights; i++) {
+            if (distance(fragPos, lightPos[i]) < 2) { // Adjust the threshold as needed
+                color = vec4(1.0, 1.0, 1.0, 1.0); // White color for light positions
+                return;
+            }
+        }
+
+        vec3 normal = normalize(normalVec);
+        vec3 ambient = vec3(ambientLight);
+
+        vec3 finalColor = vec3(0.0);
+
+        for (int i = 0; i < numLights; i++) 
+        {
+            vec3 lightDir = normalize(lightPos[i] - fragPos); // Calculate the direction from the fragment to the light source
+            float distance = length(lightPos[i] - fragPos); // Calculate the distance to the light source
+            float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance)); // Attenuation formula
+
+            float diff = max(dot(normal, lightDir), 0.0); // Calculate diffuse intensity
+            vec3 diffuse = diff * vec3(lightColor[i]) * lightBrightness[i]; // Use light color and apply brightness
+            finalColor += diffuse * attenuation; // Apply attenuation to diffuse lighting
+        }
+
+        finalColor = ambient + finalColor; // Add ambient light to the final color
+        texColor.rgb *= finalColor; // Apply lighting to texture color
     }
-
-    finalColor = ambient + finalColor; // Add ambient light to the final color
-    texColor.rgb *= finalColor; // Apply lighting to texture color
-    
     color = texColor;
     
 }

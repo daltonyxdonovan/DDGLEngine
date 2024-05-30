@@ -18,6 +18,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "src/Texture.h"
+#include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <algorithm>
 #include <cmath>
@@ -32,8 +33,6 @@
 #include <thread>
 #include <vector>
 
-#include <SFML/Audio.hpp>
-
 bool CheckGLErrors(const char *function, const char *file, int line)
 {
     bool errorOccurred = false;
@@ -45,7 +44,6 @@ bool CheckGLErrors(const char *function, const char *file, int line)
     return errorOccurred;
 }
 
-// Macro to simplify error checking
 #define GLCall(x)                                                                                                      \
     ClearGLErrors();                                                                                                   \
     x;                                                                                                                 \
@@ -105,6 +103,8 @@ class Cube
         float textureID = 0;
         float chosen = 0;
         this->position = glm::vec3(0, 0, 0);
+        this->positionLowest = position;
+        this->positionHighest = positionLowest + glm::vec3(0, 10, 0);
         this->rotation = glm::vec3(0, 0, 0);
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider = OBBCollider(position, scale, glm::mat3(1.0f));
@@ -115,6 +115,8 @@ class Cube
     Cube(glm::vec3 position, float textureID, float chosen = 0)
     {
         this->position = position;
+        this->positionLowest = position;
+        this->positionHighest = positionLowest + glm::vec3(0, 10, 0);
         this->rotation = glm::vec3();
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider = OBBCollider(position, scale, glm::mat3(1.0f));
@@ -125,6 +127,8 @@ class Cube
     Cube(glm::vec3 pos, float textureID) : position(pos), textureIndex(textureID)
     {
         float chosen = 0;
+        this->positionLowest = position;
+        this->positionHighest = positionLowest + glm::vec3(0, 10, 0);
         this->rotation = glm::vec3();
         this->scale = glm::vec3(1.0f, 1.0f, 1.0f);
         collider = OBBCollider(position, scale, glm::mat3(1.0f));
@@ -255,14 +259,20 @@ class Cube
 
     void Increase()
     {
-        position.y += 0.02;
-        collider.position.y += 0.02;
+        if (position.y < positionHighest.y)
+        {
+            position.y += 0.02;
+            collider.position.y += 0.02;
+        }
     }
 
     void Decrease()
     {
-        position.y -= 0.01f;
-        collider.position.y -= 0.01f;
+        if (position.y > positionLowest.y)
+        {
+            position.y -= 0.01f;
+            collider.position.y -= 0.01f;
+        }
     }
 
     bool isPointInside(glm::vec3 point)
@@ -926,19 +936,19 @@ void RefreshUI(VertexBufferLayout &layout, bool PRINTLOOPLOG, unsigned int STRID
                 positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] = images[i].textureIndex;
             }
         }
-    }
+    } /*
 
-    vaUI.Unbind();
-    vbUI.Unbind();
-    ibUI.Unbind();
+     vaUI.Unbind();
+     vbUI.Unbind();
+     ibUI.Unbind();
 
-    vbUI.UpdateBuffer(positionsUI, (images.size() * FULL_STRIDE2));
-    vaUI.AddBuffer(vbUI, layout);
-    ibUI.UpdateBuffer(indicesAfter2, indicesCount2);
+     vbUI.UpdateBuffer(positionsUI, (images.size() * FULL_STRIDE2));
+     vaUI.AddBuffer(vbUI, layout);
+     ibUI.UpdateBuffer(indicesAfter2, indicesCount2);
 
-    vaUI.Bind();
-    vbUI.Bind();
-    ibUI.Bind();
+     vaUI.Bind();
+     vbUI.Bind();
+     ibUI.Bind();*/
     if (PRINTLOOPLOG)
         std::cout << "done refreshing UI!" << std::endl;
 }
@@ -1000,12 +1010,55 @@ void RenderUI(VertexBufferLayout &layout, bool PRINTLOOPLOG, unsigned int STRIDE
               Renderer &renderer, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib, Shader &shader)
 {
 
-    // Refresh UI buffers
-    GLCall(RefreshUI(layout, PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2,
-                     FULL_STRIDE2, positionsUI, vaUI, vbUI, ibUI));
+    ////// Refresh UI buffers
+    ////GLCall(RefreshUI(layout, PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2,
+    ////                 FULL_STRIDE2, positionsUI, vaUI, vbUI, ibUI));
 
-    // Draw UI
-    GLCall(renderer.Draw(vaUI, ibUI, shaderUI));
+    //// Draw UI
+    // GLCall(renderer.Draw(vaUI, ibUI, shaderUI));
+}
+
+glm::vec3 quatToEuler(glm::vec4 q)
+{
+    glm::vec3 euler;
+
+    // Yaw (y-axis rotation)
+    float siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+    float cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+    euler.y = glm::atan(siny_cosp, cosy_cosp);
+
+    // Pitch (x-axis rotation)
+    float sinp = 2.0 * (q.w * q.y - q.z * q.x);
+    if (abs(sinp) >= 1.0)
+        euler.x = copysign(3.14159265358979323846 / 2.0, sinp); // use 90 degrees if out of range
+    else
+        euler.x = asin(sinp);
+
+    // Roll (z-axis rotation)
+    float sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+    float cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+    euler.z = glm::atan(sinr_cosp, cosr_cosp);
+
+    return euler;
+}
+
+float radiansToDegrees(float radians)
+{
+    return radians * (180.0 / 3.14159265358979323846);
+}
+
+void SetRotsRadians(glm::vec3 &rots, glm::vec3 &rotsRadians, Cube *&cubeLookingAt)
+{
+    rots = quatToEuler(glm::vec4(cubeLookingAt->collider.orientation.x, cubeLookingAt->collider.orientation.y,
+                                 cubeLookingAt->collider.orientation.z, cubeLookingAt->collider.orientation.w));
+    rotsRadians = rots;
+
+    rots.x = radiansToDegrees(rots.x);
+    rots.y = radiansToDegrees(rots.y);
+    rots.z = radiansToDegrees(rots.z);
+
+    std::cout << rots.x << ", " << rots.y << ", " << rots.z << std::endl;
+    std::cout << rotsRadians.x << ", " << rotsRadians.y << ", " << rotsRadians.z << std::endl << std::endl;
 }
 
 #pragma endregion
@@ -1027,6 +1080,9 @@ bool recharging = false;
 bool needsRecharging = false;
 int energyRechargeCooldown = 0;
 int numOfFeetOnGround = 0;
+bool levelSelect = false;
+std::string levelText = "Unchosen";
+bool amountOfLevels = 10;
 
 const bool PRINTLOG = true;      // for debugging start of program
 const bool PRINTLOOPLOG = false; // for debugging loop  in program
@@ -1287,9 +1343,13 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
         RotatePoint(points[i], voxels[cubeLookingAt->index].position, rotation, pointsOriginal[i]);
     }
 
+    // Convert Euler angles to rotation matrix using XYZ order
     glm::mat4 rotationMatrix = glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+
+    // Convert rotation matrix to quaternion
     glm::quat quaternion2 = glm::quat_cast(rotationMatrix);
 
+    // Set the collider rotation using the quaternion
     voxels[cubeLookingAt->index].collider.setRotation(quaternion2);
 
     voxels[cubeLookingAt->index].cornerPositions[0] = points[0].x;
@@ -1439,7 +1499,6 @@ void Sap(int amount)
 int main()
 {
     sf::SoundBuffer buffer;
-    std::cout << "starting main" << std::endl;
     if (!buffer.loadFromFile("res/sounds/blipSelect.wav"))
     {
         std::cout << "couldn't load sound" << std::endl;
@@ -1460,8 +1519,8 @@ int main()
     images.push_back(img);
     voxels.push_back(cubeDummy);
 
-    voxels = LoadCubesFromFile("res/mapVoxels.txt");
-    lights = LoadLightsFromFile("res/mapLights.txt");
+    voxels = LoadCubesFromFile("res/maps/mapVoxels0.txt");
+    lights = LoadLightsFromFile("res/maps/mapLights0.txt");
     needsRefresh = true;
 
     if (voxels.size() == 0)
@@ -1503,8 +1562,8 @@ int main()
     if (PRINTLOG)
         std::cout << "Math for buffers done, creating vectors!" << std::endl;
 
-    // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number of
-    // indices in our cube)
+    // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number
+    // of indices in our cube)
     float *positions = new float[(voxels.size() * STRIDE * AMOUNT_OF_INDICES)];
     float *positionsUI = new float[(images.size() * STRIDE2 * AMOUNT_OF_INDICES2)];
 
@@ -1589,9 +1648,9 @@ int main()
     if (PRINTLOG)
         std::cout << "GLFW and GL3W initialised! Setting up VBO/VAO!" << std::endl;
 
-    unsigned int vao[2];
-    glGenVertexArrays(1, &vao[0]);
-    glBindVertexArray(vao[0]);
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
     if (PRINTLOG)
         std::cout << "Finally binding VAO..." << std::endl;
@@ -1625,13 +1684,6 @@ int main()
 
     IndexBuffer ib(indicesAfter, indicesCount);
 
-    glGenVertexArrays(1, &vao[1]);
-    glBindVertexArray(vao[1]);
-    VertexArray vaUI(1);
-    VertexBuffer vbUI(positionsUI, (images.size() * FULL_STRIDE2));
-    vaUI.AddBuffer(vbUI, layout);
-    IndexBuffer ibUI(indicesAfter2, indicesCount2);
-
 #pragma endregion LAYOUT
 
 #pragma region GLINIT2
@@ -1645,8 +1697,6 @@ int main()
         std::cout << "Voxels generated! Creating shaders..." << std::endl;
     Shader shaderUI("res/shaders/UI.shader");
 
-    glGenVertexArrays(1, &vao[0]);
-    glBindVertexArray(vao[0]);
     Shader shader("res/shaders/Basic.shader");
 
     shader.Bind();
@@ -1680,11 +1730,8 @@ int main()
     shaderUI.SetUniform1f("u_Heart0", 1);
 
     va.Unbind();
-    vaUI.Unbind();
     vb.Unbind();
-    vbUI.Unbind();
     ib.Unbind();
-    ibUI.Unbind();
     shader.Unbind();
 
     if (PRINTLOG)
@@ -1978,46 +2025,54 @@ int main()
         //  if left mouse is pressed
         if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            cooldownForBreak++;
-            if (cooldownForBreak > 5)
+            if (pinned)
             {
-                if (cubeLookingAt != nullptr)
+                addNotification("BREAKING NOT ALLOWED WHILE PINNED", 100);
+            }
+            else
+            {
+
+                cooldownForBreak++;
+                if (cooldownForBreak > 5)
                 {
-                    if (/*cubeLookingAt->index >= 119 && */ cubeLookingAt->index < voxels.size())
+                    if (cubeLookingAt != nullptr)
                     {
-                        voxels.erase(voxels.begin() + cubeLookingAt->index);
-                    }
-                    else
-                    {
-                        addNotification("VOXEL PROTECTED FROM BREAKING-", 30);
-                    }
-                    for (int i = 0; i < voxels.size(); i++)
-                    {
-                        voxels[i].index = i;
-                    }
+                        if (/*cubeLookingAt->index >= 119 && */ cubeLookingAt->index < voxels.size())
+                        {
+                            voxels.erase(voxels.begin() + cubeLookingAt->index);
+                        }
+                        else
+                        {
+                            addNotification("VOXEL PROTECTED FROM BREAKING-", 30);
+                        }
+                        for (int i = 0; i < voxels.size(); i++)
+                        {
+                            voxels[i].index = i;
+                        }
 
-                    needsRefresh = true;
-                    /*cubeLookingAt->SetInvisible();
-                    voxels[cubeLookingAt->index].invisible = true;
-                    vb.UpdateChosen((cubeLookingAt->index), 1, STRIDE);*/
-                }
-
-                int vx = (int)voxels[0].position.x;
-                int vy = (int)voxels[0].position.y;
-                int vz = (int)voxels[0].position.z;
-
-                for (int i = 0; i < lights.size(); i++)
-                {
-                    int x = (int)lights[i]->position.x;
-                    int y = (int)lights[i]->position.y;
-                    int z = (int)lights[i]->position.z;
-                    if (vx == x && vy == y && vz == z)
-                    {
-                        lights.erase(lights.begin() + i);
                         needsRefresh = true;
+                        /*cubeLookingAt->SetInvisible();
+                        voxels[cubeLookingAt->index].invisible = true;
+                        vb.UpdateChosen((cubeLookingAt->index), 1, STRIDE);*/
                     }
+
+                    int vx = (int)voxels[0].position.x;
+                    int vy = (int)voxels[0].position.y;
+                    int vz = (int)voxels[0].position.z;
+
+                    for (int i = 0; i < lights.size(); i++)
+                    {
+                        int x = (int)lights[i]->position.x;
+                        int y = (int)lights[i]->position.y;
+                        int z = (int)lights[i]->position.z;
+                        if (vx == x && vy == y && vz == z)
+                        {
+                            lights.erase(lights.begin() + i);
+                            needsRefresh = true;
+                        }
+                    }
+                    cooldownForBreak = 0;
                 }
-                cooldownForBreak = 0;
             }
         }
 
@@ -2482,7 +2537,8 @@ int main()
                 }
 
                 ImGui::Spacing();
-
+                glm::vec3 rots = glm::vec3(0);
+                glm::vec3 rotsRadians = glm::vec3(0);
                 // Add sliders for scale
                 float xrot = cubeLookingAt->rotation.x;
                 float yrot = cubeLookingAt->rotation.y;
@@ -2493,12 +2549,16 @@ int main()
                     if (xrot > 0)
                     {
                         xrot -= 0.5f;
-                        cubeLookingAt->rotation.x = xrot;
 
+                        cubeLookingAt->rotation.x = xrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
-
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2507,10 +2567,14 @@ int main()
                 if (ImGui::DragFloat("   ROTX", &xrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.x = xrot;
-
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                    SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                    voxels[0].rotation = rots;
+                    voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                    UpdateRotation(&voxels[0], voxels, rots);
+                    vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2520,11 +2584,16 @@ int main()
                     if (xrot < 360)
                     {
                         xrot += 0.5f;
-                        cubeLookingAt->rotation.x = xrot;
 
+                        cubeLookingAt->rotation.x = xrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2537,11 +2606,16 @@ int main()
                     if (yrot > 0)
                     {
                         yrot -= 0.5f;
-                        cubeLookingAt->rotation.y = yrot;
 
+                        cubeLookingAt->rotation.y = yrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2550,10 +2624,14 @@ int main()
                 if (ImGui::DragFloat("   ROTY", &yrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.y = yrot;
-
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                    SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                    voxels[0].rotation = rots;
+                    voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                    UpdateRotation(&voxels[0], voxels, rots);
+                    vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2563,11 +2641,16 @@ int main()
                     if (yrot < 360)
                     {
                         yrot += 0.5f;
-                        cubeLookingAt->rotation.y = yrot;
 
+                        cubeLookingAt->rotation.y = yrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2580,11 +2663,16 @@ int main()
                     if (zrot > 0.5f)
                     {
                         zrot -= 0.5f;
-                        cubeLookingAt->rotation.z = zrot;
 
+                        cubeLookingAt->rotation.z = zrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2593,10 +2681,14 @@ int main()
                 if (ImGui::DragFloat("   ROTZ", &zrot, 0.5f, 0, 360))
                 {
                     cubeLookingAt->rotation.z = zrot;
-
                     voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                    SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                    voxels[0].rotation = rots;
+                    voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                     UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                    UpdateRotation(&voxels[0], voxels, rots);
+                    vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                     vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                       cubeLookingAt->rotation, STRIDE);
                 }
@@ -2606,11 +2698,16 @@ int main()
                     if (zrot < 360)
                     {
                         zrot += 0.5f;
-                        cubeLookingAt->rotation.z = zrot;
 
+                        cubeLookingAt->rotation.z = zrot;
                         voxels[cubeLookingAt->index].rotation = cubeLookingAt->rotation;
+                        SetRotsRadians(rots, rotsRadians, cubeLookingAt);
+                        voxels[0].rotation = rots;
+                        voxels[0].scale = voxels[cubeLookingAt->index].scale;
 
                         UpdateRotation(cubeLookingAt, voxels, cubeLookingAt->rotation);
+                        UpdateRotation(&voxels[0], voxels, rots);
+                        vb.UpdateRotation(0, cubeLookingAt->position, cubeLookingAt->position, rots, STRIDE);
                         vb.UpdateRotation(cubeLookingAt->index, cubeLookingAt->position, cubeLookingAt->position,
                                           cubeLookingAt->rotation, STRIDE);
                     }
@@ -2893,6 +2990,12 @@ int main()
                     chosenTextureID = sliderValueX2;
                     voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
 
+                    if (sliderValueX2 == 98)
+                    {
+                        voxels[cubeLookingAt->index].positionLowest = voxels[cubeLookingAt->index].position;
+                        voxels[cubeLookingAt->index].positionHighest =
+                            voxels[cubeLookingAt->index].positionLowest + glm::vec3(0, 10, 0);
+                    }
                     if (sliderValueX2 == 99)
                     {
                         bool foundLight = false;
@@ -2938,6 +3041,12 @@ int main()
                 chosenTextureID = sliderValueX2;
                 voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
 
+                if (sliderValueX2 == 98)
+                {
+                    voxels[cubeLookingAt->index].positionLowest = voxels[cubeLookingAt->index].position;
+                    voxels[cubeLookingAt->index].positionHighest =
+                        voxels[cubeLookingAt->index].positionLowest + glm::vec3(0, 10, 0);
+                }
                 if (sliderValueX2 == 99)
                 {
                     bool foundLight = false;
@@ -2985,6 +3094,12 @@ int main()
                     chosenTextureID = sliderValueX2;
                     voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
 
+                    if (sliderValueX2 == 98)
+                    {
+                        voxels[cubeLookingAt->index].positionLowest = voxels[cubeLookingAt->index].position;
+                        voxels[cubeLookingAt->index].positionHighest =
+                            voxels[cubeLookingAt->index].positionLowest + glm::vec3(0, 10, 0);
+                    }
                     if (sliderValueX2 == 99)
                     {
                         bool foundLight = false;
@@ -3033,6 +3148,12 @@ int main()
                     vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
                     chosenTextureID = sliderValueX2;
                     voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
+                    if (sliderValueX2 == 98)
+                    {
+                        voxels[cubeLookingAt->index].positionLowest = voxels[cubeLookingAt->index].position;
+                        voxels[cubeLookingAt->index].positionHighest =
+                            voxels[cubeLookingAt->index].positionLowest + glm::vec3(0, 10, 0);
+                    }
                 }
             }
             else if (io.MouseWheel < 0)
@@ -3044,6 +3165,12 @@ int main()
                     vb.UpdateTexture(cubeLookingAt->index, sliderValueX2, STRIDE);
                     voxels[cubeLookingAt->index].textureIndex = sliderValueX2;
                     chosenTextureID = sliderValueX2;
+                    if (sliderValueX2 == 98)
+                    {
+                        voxels[cubeLookingAt->index].positionLowest = voxels[cubeLookingAt->index].position;
+                        voxels[cubeLookingAt->index].positionHighest =
+                            voxels[cubeLookingAt->index].positionLowest + glm::vec3(0, 10, 0);
+                    }
                 }
             }
 
@@ -3058,7 +3185,6 @@ int main()
         {
             ImGui::Begin("PAUSED", NULL, ImGuiWindowFlags_AlwaysAutoResize);
 
-            // Set font size to 20
             ImGui::SetWindowFontScale(1.0f);
 
             // Set window position to center
@@ -3080,39 +3206,46 @@ int main()
 
             ImGui::Spacing();
 
+            if (ImGui::Button("LEVEL SELECT", ImVec2(buttonWidth, 0)))
+            {
+                levelSelect = true;
+            }
+
+            ImGui::Spacing();
+
             // Centered "UNSTUCK" button
             buttonWidth = ImGui::CalcTextSize("UNSTUCK").x + 20; // Adding some padding
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("UNSTUCK", ImVec2(buttonWidth, 0)))
             {
-                camera.position = glm::vec3(0, 3.0f, 0);
+                camera.position = camera.lastPosition;
                 camera.yVelocity = 0;
             }
             buttonWidth = ImGui::CalcTextSize("WIPE MAP").x + 20;
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("WIPE MAP", ImVec2(buttonWidth, 0)))
             {
-                voxels = LoadCubesFromFile("res/mapVoxelsBackup.txt");
-                lights = LoadLightsFromFile("res/mapLightsBackup.txt");
+                voxels = LoadCubesFromFile("res/maps/mapVoxelsBackup.txt");
+                lights = LoadLightsFromFile("res/maps/mapLightsBackup.txt");
                 needsRefresh = true;
             }
 
             ImGui::Spacing();
 
             // Centered "SAVE" and "LOAD" buttons
-            buttonWidth = ImGui::CalcTextSize("SAVE").x + 20; // Adding some padding
+            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20; // Adding some padding
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - (buttonWidth * 2 + 10)) /
                                  2); // Centering both buttons with some spacing
             if (ImGui::Button("SAVE MAP", ImVec2(buttonWidth, 0)))
             {
-                SaveCubesToFile(voxels, "res/mapVoxels.txt");
-                SaveLightsToFile(lights, "res/mapLights.txt");
+                SaveCubesToFile(voxels, "res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
+                SaveLightsToFile(lights, "res/maps/mapLights" + std::to_string(currentLevel) + ".txt");
             }
             ImGui::SameLine();
-            if (ImGui::Button("LOAD MAP", ImVec2(buttonWidth, 0)))
+            if (ImGui::Button("LOAD TUTORIAL MAP", ImVec2(buttonWidth, 0)))
             {
-                voxels = LoadCubesFromFile("res/mapVoxels.txt");
-                lights = LoadLightsFromFile("res/mapLights.txt");
+                voxels = LoadCubesFromFile("res/maps/mapVoxels0.txt");
+                lights = LoadLightsFromFile("res/maps/mapLights0.txt");
                 for (int i = 0; i < voxels.size(); i++)
                 {
                     voxels[i].collider.setSize(voxels[i].scale);
@@ -3149,6 +3282,77 @@ int main()
         }
 
 #pragma endregion PauseMenu
+
+#pragma region LevelSelect
+
+        if (levelSelect)
+        {
+            ImGui::Begin("LEVEL SELECT", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+
+            // Add some vertical spacing
+            ImGui::Dummy(ImVec2(5.0f, 5.0f));
+
+            // Start a new horizontal group to align the level button and the text
+            ImGui::BeginGroup();
+
+            const char *lvlText = levelText.c_str();
+
+            // Justify the first level button to the left
+            if (ImGui::Button(lvlText, ImVec2(100, 100)))
+            {
+            }
+            // Move the cursor to the right of the button for the text
+            ImGui::SameLine();
+
+            // Set the wrap position for the text to prevent window resizing
+            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 200.0f); // Adjust width as needed
+            ImGui::TextWrapped("This is a description of the level. It can be quite long and should wrap if it exceeds "
+                               "the width of the available space. The text should not make the window any bigger.");
+            ImGui::PopTextWrapPos();
+
+            ImGui::EndGroup();
+
+            // Add spacing between the top level and the 3x3 grid
+            ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
+            // Create a 3x3 grid for the remaining levels
+            for (int i = 1; i <= 9; i++)
+            {
+                if (i % 3 != 1)
+                {
+                    ImGui::SameLine();
+                }
+
+                char label[16];
+                snprintf(label, sizeof(label), "Level %d", i);
+                if (ImGui::Button(label, ImVec2(100, 100)))
+                {
+                    currentLevel = i;
+                    levelText = "Level: " + std::to_string(i);
+                }
+            }
+
+            // Add spacing before the LOAD LEVEL button
+            ImGui::Dummy(ImVec2(0.0f, 0.0f));
+
+            // Add a button that is the width of the window at the bottom
+            if (ImGui::Button("LOAD LEVEL", ImVec2(ImGui::GetContentRegionAvail().x, 50)))
+            {
+                voxels = LoadCubesFromFile("res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
+                lights = LoadLightsFromFile("res/maps/mapLights" + std::to_string(currentLevel) + ".txt");
+                for (int i = 0; i < voxels.size(); i++)
+                {
+                    voxels[i].collider.setSize(voxels[i].scale);
+                    voxels[i].collider.setPosition(voxels[i].position);
+                }
+                needsRefresh = true;
+                addNotification("LOADED LEVEL: " + std::to_string(currentLevel), 100);
+            }
+
+            ImGui::End();
+        }
+
+#pragma endregion LevelSelect
 
 #pragma region Notifications
         ImGui::SetNextWindowSize(ImVec2(500, 500));
