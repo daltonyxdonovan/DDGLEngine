@@ -1,8 +1,11 @@
 Cube
-Position: -3 1 4
+Position: -7 -10 0
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 99
 VerticesAfterTransformation: 
 Index: 0
@@ -14,6 +17,9 @@ Position: 0 -6 0
 Rotation: 0 0 0
 Scale: 50 1 50
 Door: 0
+0
+0
+0
 TextureIndex: 24
 VerticesAfterTransformation: 
 Index: 1
@@ -25,6 +31,9 @@ Position: 0 9 0
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 99
 VerticesAfterTransformation: 
 Index: 2
@@ -36,6 +45,9 @@ Position: 0 9 0
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 99
 VerticesAfterTransformation: 
 Index: 3
@@ -47,6 +59,9 @@ Position: -25 7 -7
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 4
@@ -58,6 +73,9 @@ Position: -24 7 -7
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 5
@@ -69,6 +87,9 @@ Position: -24 7 -8
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 6
@@ -80,6 +101,9 @@ Position: -24 7 -9
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 7
@@ -91,6 +115,9 @@ Position: -23 7 -9
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 8
@@ -102,6 +129,9 @@ Position: -23 7 -10
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 9
@@ -113,6 +143,9 @@ Position: -23 7 -11
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 10
@@ -124,6 +157,9 @@ Position: -23 7 -12
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 11
@@ -135,6 +171,9 @@ Position: -23 6 -12
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 12
@@ -146,6 +185,9 @@ Position: -23 6 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 13
@@ -157,6 +199,9 @@ Position: -23 5 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 14
@@ -168,6 +213,9 @@ Position: -23 5 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 15
@@ -179,6 +227,9 @@ Position: -24 5 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 16
@@ -190,6 +241,9 @@ Position: -24 4 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 17
@@ -201,6 +255,9 @@ Position: -25 4 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 18
@@ -212,6 +269,9 @@ Position: -25 4 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 19
@@ -223,6 +283,9 @@ Position: -26 4 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 20
@@ -234,6 +297,9 @@ Position: -26 3 -12
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 21
@@ -245,6 +311,9 @@ Position: -27 3 -12
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 22
@@ -256,6 +325,9 @@ Position: -27 3 -11
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 23
@@ -267,6 +339,9 @@ Position: -26 3 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 24
@@ -278,6 +353,9 @@ Position: -26 3 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 25
@@ -289,6 +367,9 @@ Position: -25 3 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 26
@@ -300,6 +381,9 @@ Position: -25 2 -15
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 27
@@ -311,6 +395,9 @@ Position: -24 2 -15
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 28
@@ -322,6 +409,9 @@ Position: -24 1 -15
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 29
@@ -333,6 +423,9 @@ Position: -24 1 -16
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 30
@@ -344,6 +437,9 @@ Position: -24 0 -16
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 31
@@ -355,6 +451,9 @@ Position: -24 -1 -16
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 32
@@ -366,6 +465,9 @@ Position: -25 -1 -16
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 33
@@ -377,6 +479,9 @@ Position: -25 -1 -15
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 34
@@ -388,6 +493,9 @@ Position: -26 -1 -15
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 35
@@ -399,6 +507,9 @@ Position: -26 -1 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 36
@@ -410,6 +521,9 @@ Position: -27 -1 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 37
@@ -421,6 +535,9 @@ Position: -27 -2 -14
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 38
@@ -432,6 +549,9 @@ Position: -27 -2 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 39
@@ -443,6 +563,9 @@ Position: -28 -2 -13
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 40
@@ -454,6 +577,9 @@ Position: -28 -2 -12
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 41
@@ -465,6 +591,9 @@ Position: -28 -1 -11
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 42
@@ -476,6 +605,9 @@ Position: -29 -1 -11
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 43
@@ -487,6 +619,9 @@ Position: -29 -1 -10
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 44
@@ -498,6 +633,9 @@ Position: -29 0 -10
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 45
@@ -509,6 +647,9 @@ Position: -29 0 -9
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 0
 VerticesAfterTransformation: 
 Index: 46

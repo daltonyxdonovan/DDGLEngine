@@ -418,6 +418,9 @@ void SaveCubesToFile(const std::vector<Cube> &cubes, const std::string &filename
         file << "Rotation: " << cube.rotation.x << " " << cube.rotation.y << " " << cube.rotation.z << "\n";
         file << "Scale: " << cube.scale.x << " " << cube.scale.y << " " << cube.scale.z << "\n";
         file << "Door: " << cube.door << "\n";
+        file << cube.requiresRedKey << "\n";
+        file << cube.requiresGreenKey << "\n";
+        file << cube.requiresBlueKey << "\n";
         file << "TextureIndex: " << cube.textureIndex << "\n";
         file << "VerticesAfterTransformation: ";
         for (const auto &vertex : cube.verticesAfterTransformation)
@@ -483,6 +486,24 @@ std::vector<Cube> LoadCubesFromFile(const std::string &filename)
             std::istringstream doorStream(line.substr(6));
             doorStream >> doorString;
             cube.door = (doorString == "1");
+
+            std::getline(file, line);
+            std::string redstring;
+            std::istringstream redStream(line);
+            redStream >> redstring;
+            cube.requiresRedKey = (redstring == "1");
+
+            std::getline(file, line);
+            std::string greenstring;
+            std::istringstream greenStream(line);
+            greenStream >> greenstring;
+            cube.requiresGreenKey = (greenstring == "1");
+
+            std::getline(file, line);
+            std::string bluestring;
+            std::istringstream blueStream(line);
+            blueStream >> bluestring;
+            cube.requiresBlueKey = (bluestring == "1");
 
             std::getline(file, line);
             cube.textureIndex = std::stoi(line.substr(14));

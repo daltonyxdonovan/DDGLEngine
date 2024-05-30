@@ -1,8 +1,11 @@
 Cube
-Position: -1 0 5
+Position: -8 1 -7
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 99
 VerticesAfterTransformation: 
 Index: 0
@@ -14,6 +17,9 @@ Position: 0 -6 0
 Rotation: 0 0 0
 Scale: 50 1 50
 Door: 0
+0
+0
+0
 TextureIndex: 24
 VerticesAfterTransformation: 
 Index: 1
@@ -25,6 +31,9 @@ Position: 0 9 0
 Rotation: 0 0 0
 Scale: 1 1 1
 Door: 0
+0
+0
+0
 TextureIndex: 99
 VerticesAfterTransformation: 
 Index: 2
