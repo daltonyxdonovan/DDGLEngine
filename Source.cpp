@@ -68,6 +68,7 @@ int currentLevel = 0;
 int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
+float stepHeight = 2.f;
 
 #pragma region CLASSES/METHODS
 
@@ -1942,6 +1943,8 @@ int main()
                 colliding = true;
                 glm::vec3 buffer = camera.collider.ResolveCollision(voxels[voxels[i].index].collider);
 
+                float highestYOfBlock = voxels[voxels[i].index].position.y + ((voxels[voxels[i].index].scale.y));
+                
                 camera.position -= buffer;
                 if (buffer.y != 0)
                 {
@@ -1950,6 +1953,15 @@ int main()
                     camera.isJumping = false;
                     camera.yVelocity = 0;
                 }
+                if (buffer.x != 0 || buffer.z != 0)
+                {
+                    float distanceOf = std::abs((camera.position.y-camera.heighte) - highestYOfBlock);
+                    if (distanceOf <= stepHeight)
+                        camera.position.y += distanceOf;
+                    addNotification("highestY: " + std::to_string(highestYOfBlock) + "\nPosCameraY: " + std::to_string(camera.position.y), 50);
+                    addNotification(std::to_string(distanceOf) + "is how much to move", 50);
+                }
+                
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
                 if (voxels[i].textureIndex == 98)
                 {
@@ -3287,7 +3299,7 @@ int main()
 
         if (levelSelect)
         {
-            ImGui::Begin("LEVEL SELECT", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("LEVEL SELECT", &levelSelect, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
             // Add some vertical spacing
             ImGui::Dummy(ImVec2(5.0f, 5.0f));
@@ -3347,6 +3359,8 @@ int main()
                 }
                 needsRefresh = true;
                 addNotification("LOADED LEVEL: " + std::to_string(currentLevel), 100);
+                paused = false;
+                levelSelect = false;
             }
 
             ImGui::End();
