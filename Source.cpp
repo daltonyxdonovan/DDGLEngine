@@ -28,6 +28,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -90,6 +91,11 @@ class Cube
     std::vector<float> cornerPositionsOriginal;
     Cube *parent = nullptr;
     std::vector<Cube *> children;
+    bool door = false;
+    bool requiresRedKey = false;
+    bool requiresGreenKey = false;
+    bool requiresBlueKey = false;
+
     std::vector<unsigned int> indices = {
         0,  1,  2,  2,  3,  0,  // front face
         4,  5,  6,  6,  7,  4,  // back face
@@ -411,6 +417,7 @@ void SaveCubesToFile(const std::vector<Cube> &cubes, const std::string &filename
         file << "Position: " << cube.position.x << " " << cube.position.y << " " << cube.position.z << "\n";
         file << "Rotation: " << cube.rotation.x << " " << cube.rotation.y << " " << cube.rotation.z << "\n";
         file << "Scale: " << cube.scale.x << " " << cube.scale.y << " " << cube.scale.z << "\n";
+        file << "Door: " << cube.door << "\n";
         file << "TextureIndex: " << cube.textureIndex << "\n";
         file << "VerticesAfterTransformation: ";
         for (const auto &vertex : cube.verticesAfterTransformation)
@@ -470,6 +477,12 @@ std::vector<Cube> LoadCubesFromFile(const std::string &filename)
             std::getline(file, line);
             std::istringstream scaleStream(line.substr(7));
             scaleStream >> cube.scale.x >> cube.scale.y >> cube.scale.z;
+
+            std::string doorString;
+            std::getline(file, line);
+            std::istringstream doorStream(line.substr(6));
+            doorStream >> doorString;
+            cube.door = (doorString == "1");
 
             std::getline(file, line);
             cube.textureIndex = std::stoi(line.substr(14));
@@ -871,89 +884,6 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         std::cout << "done refreshing map!" << std::endl;
 }
 
-void RefreshUI(VertexBufferLayout &layout, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
-               unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2,
-               float *&positionsUI, VertexArray &vaUI, VertexBuffer &vbUI, IndexBuffer &ibUI)
-{
-    // addNotification("Refreshing map", 10);
-    if (PRINTLOOPLOG)
-        std::cout << "refreshing UI..." << std::endl;
-    needsRefresh = false;
-    indicesCount2 = images.size() * AMOUNT_OF_INDICES2;
-
-    if (indicesAfter2 != nullptr)
-    {
-        delete[] indicesAfter2;
-        indicesAfter2 = nullptr;
-    }
-
-    indicesAfter2 = new unsigned int[indicesCount2];
-
-    for (int i = 0; i < images.size(); i++)
-    {
-        for (int j = 0; j < images[i].indices.size(); j++)
-        {
-            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = images[i].indices[j] + i * AMOUNT_OF_INDICES2;
-        }
-    }
-
-    std::vector<float> scales;
-
-    for (int i = 0; i < images.size(); i++)
-    {
-        scales.push_back(images[i].scale.x);
-        scales.push_back(images[i].scale.y);
-        scales.push_back(images[i].scale.z);
-    }
-
-    if (positionsUI != nullptr)
-    {
-        delete[] positionsUI;
-        positionsUI = nullptr;
-    }
-    positionsUI = new float[(images.size() * 6 * AMOUNT_OF_INDICES2)];
-
-    for (int i = 0; i < images.size(); i++)
-    {
-
-        for (int j = 0; j < images[i].cornerPositions.size(); j++)
-        {
-            positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] = 0;
-
-            if (j % 6 == 0) // x
-            {
-                positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] += images[i].position.x;
-            }
-            else if (j % 6 == 1) // y
-            {
-                positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] += images[i].position.y;
-            }
-            else if (j % 6 == 2) // z
-            {
-                positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] += images[i].position.z;
-            }
-            else if (j % 6 == 5) // textureID
-            {
-                positionsUI[i * 6 * AMOUNT_OF_INDICES2 + j] = images[i].textureIndex;
-            }
-        }
-    } /*
-
-     vaUI.Unbind();
-     vbUI.Unbind();
-     ibUI.Unbind();
-
-     vbUI.UpdateBuffer(positionsUI, (images.size() * FULL_STRIDE2));
-     vaUI.AddBuffer(vbUI, layout);
-     ibUI.UpdateBuffer(indicesAfter2, indicesCount2);
-
-     vaUI.Bind();
-     vbUI.Bind();
-     ibUI.Bind();*/
-    if (PRINTLOOPLOG)
-        std::cout << "done refreshing UI!" << std::endl;
-}
-
 void SaveObject(std::string name, std::vector<Cube> &voxels)
 {
     std::string filename = "res/objects/" + name + ".txt";
@@ -1003,20 +933,6 @@ void SaveObject(std::string name, std::vector<Cube> &voxels)
     }
 
     file.close();
-}
-
-void RenderUI(VertexBufferLayout &layout, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
-              unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2,
-              float *&positionsUI, VertexArray &vaUI, VertexBuffer &vbUI, IndexBuffer &ibUI, Shader &shaderUI,
-              Renderer &renderer, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib, Shader &shader)
-{
-
-    ////// Refresh UI buffers
-    ////GLCall(RefreshUI(layout, PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2,
-    ////                 FULL_STRIDE2, positionsUI, vaUI, vbUI, ibUI));
-
-    //// Draw UI
-    // GLCall(renderer.Draw(vaUI, ibUI, shaderUI));
 }
 
 glm::vec3 quatToEuler(glm::vec4 q)
@@ -1073,8 +989,8 @@ double lastFrameTime = 0.0;
 glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
 int health = 40;
 int maxHealth = 40;
-int healthCooldown = 4;
-int energyCooldown = 4;
+int healthCooldown = 0;
+int energyCooldown = 0;
 int energy = 10;
 int maxEnergy = 10;
 bool recharging = false;
@@ -1084,6 +1000,24 @@ int numOfFeetOnGround = 0;
 bool levelSelect = false;
 std::string levelText = "Unchosen";
 bool amountOfLevels = 10;
+
+// clang-format off
+std::vector<const char*> descriptions =
+{
+    "Select a level to see information about it",
+    "The starting point - Currently a work in progress!",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+
+
+};
+// clang-format on
 
 const bool PRINTLOG = true;      // for debugging start of program
 const bool PRINTLOOPLOG = false; // for debugging loop  in program
@@ -1451,6 +1385,7 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
 }
 
 std::vector<int> heartImages = {2, 3, 4, 5, 6};
+std::vector<int> levelImages = {8, 9, 10, 11, 12, 13, 14, 15, 16, 15, 15, 15};
 
 GLuint GetHeartImage(int health, std::vector<int> &heartImages)
 {
@@ -1458,6 +1393,11 @@ GLuint GetHeartImage(int health, std::vector<int> &heartImages)
         return heartImages[0];
     int index = (health % 4);
     return heartImages[index];
+}
+
+GLuint GetLevelImage(int level, std::vector<int> &levelImages)
+{
+    return levelImages[level];
 }
 
 void Damage(int amount, int &health, int &healthCooldown, int maxHealth)
@@ -1520,8 +1460,8 @@ int main()
     images.push_back(img);
     voxels.push_back(cubeDummy);
 
-    voxels = LoadCubesFromFile("res/maps/mapVoxels0.txt");
-    lights = LoadLightsFromFile("res/maps/mapLights0.txt");
+    voxels = LoadCubesFromFile("res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
+    lights = LoadLightsFromFile("res/maps/mapLights" + std::to_string(currentLevel) + ".txt");
     needsRefresh = true;
 
     if (voxels.size() == 0)
@@ -1713,6 +1653,16 @@ int main()
     Texture u_Heart3("res/textures/heart3.png");
     Texture u_Heart4("res/textures/heart4.png");
     Texture u_Energy("res/textures/energy.png");
+    Texture u_Level0("res/textures/level0.png");
+    Texture u_Level1("res/textures/level1.png");
+    Texture u_Level2("res/textures/level2.png");
+    Texture u_Level3("res/textures/level3.png");
+    Texture u_Level4("res/textures/level4.png");
+    Texture u_Level5("res/textures/level5.png");
+    Texture u_Level6("res/textures/level6.png");
+    Texture u_Level7("res/textures/level7.png");
+    Texture u_Level8("res/textures/level8.png");
+    Texture u_Level9("res/textures/level9.png");
 
     u_TextureAtlas.Bind(0);
     u_Heart0.Bind(1);
@@ -1720,6 +1670,17 @@ int main()
     u_Heart0.Bind(3);
     u_Heart0.Bind(4);
     u_Heart0.Bind(5);
+    u_Energy.Bind(6);
+    u_Level0.Bind(7);
+    u_Level1.Bind(8);
+    u_Level2.Bind(9);
+    u_Level3.Bind(10);
+    u_Level4.Bind(11);
+    u_Level5.Bind(12);
+    u_Level6.Bind(13);
+    u_Level7.Bind(14);
+    u_Level8.Bind(15);
+    u_Level9.Bind(16);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1929,6 +1890,14 @@ int main()
 
         for (int i = 0; i < voxels.size(); i++)
         {
+            if (voxels[i].door)
+            {
+                float distanceBetweenDoorAndPlayer = glm::distance(
+                    glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y, voxels[i].position.z),
+                    camera.position);
+                if (distanceBetweenDoorAndPlayer < 10)
+                    voxels[i].Increase();
+            }
             glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
             glm::mat4 rotationMatrix = glm::eulerAngleXYZ(radiansRotation.x, radiansRotation.y, radiansRotation.z);
 
@@ -1944,7 +1913,7 @@ int main()
                 glm::vec3 buffer = camera.collider.ResolveCollision(voxels[voxels[i].index].collider);
 
                 float highestYOfBlock = voxels[voxels[i].index].position.y + ((voxels[voxels[i].index].scale.y));
-                
+
                 camera.position -= buffer;
                 if (buffer.y != 0)
                 {
@@ -1955,13 +1924,11 @@ int main()
                 }
                 if (buffer.x != 0 || buffer.z != 0)
                 {
-                    float distanceOf = std::abs((camera.position.y-camera.heighte) - highestYOfBlock);
+                    float distanceOf = std::abs((camera.position.y - camera.heighte) - highestYOfBlock);
                     if (distanceOf <= stepHeight)
                         camera.position.y += distanceOf;
-                    addNotification("highestY: " + std::to_string(highestYOfBlock) + "\nPosCameraY: " + std::to_string(camera.position.y), 50);
-                    addNotification(std::to_string(distanceOf) + "is how much to move", 50);
                 }
-                
+
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
                 if (voxels[i].textureIndex == 98)
                 {
@@ -2431,7 +2398,10 @@ int main()
             ImGui::Checkbox("Pin", &pinned);
             ImGui::SameLine();
             ImGui::Text("VOXEL %d", cubeLookingAt->index);
-
+            ImGui::Checkbox("Door?", &cubeLookingAt->door);
+            ImGui::Checkbox("Requires Red Key?", &cubeLookingAt->requiresRedKey);
+            ImGui::Checkbox("Requires Blue Key?", &cubeLookingAt->requiresBlueKey);
+            ImGui::Checkbox("Requires Green Key?", &cubeLookingAt->requiresGreenKey);
             ImGui::Spacing();
             ImGui::Text("Position:                    (%d,   %d,   %d)", (int)cubeLookingAt->position.x,
                         (int)cubeLookingAt->position.y, (int)cubeLookingAt->position.z);
@@ -3217,7 +3187,8 @@ int main()
             }
 
             ImGui::Spacing();
-
+            buttonWidth = ImGui::CalcTextSize("LEVEL SELECT").x + 20;
+            ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("LEVEL SELECT", ImVec2(buttonWidth, 0)))
             {
                 levelSelect = true;
@@ -3256,6 +3227,7 @@ int main()
             ImGui::SameLine();
             if (ImGui::Button("LOAD TUTORIAL MAP", ImVec2(buttonWidth, 0)))
             {
+                currentLevel = 0;
                 voxels = LoadCubesFromFile("res/maps/mapVoxels0.txt");
                 lights = LoadLightsFromFile("res/maps/mapLights0.txt");
                 for (int i = 0; i < voxels.size(); i++)
@@ -3299,6 +3271,7 @@ int main()
 
         if (levelSelect)
         {
+
             ImGui::Begin("LEVEL SELECT", &levelSelect, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
             // Add some vertical spacing
@@ -3309,17 +3282,15 @@ int main()
 
             const char *lvlText = levelText.c_str();
 
-            // Justify the first level button to the left
-            if (ImGui::Button(lvlText, ImVec2(100, 100)))
-            {
-            }
+            GLuint imageID = GetLevelImage(currentLevel, levelImages);
+            ImGui::Image((void *)(intptr_t)imageID, ImVec2(100, 100));
+
             // Move the cursor to the right of the button for the text
             ImGui::SameLine();
 
             // Set the wrap position for the text to prevent window resizing
             ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 200.0f); // Adjust width as needed
-            ImGui::TextWrapped("This is a description of the level. It can be quite long and should wrap if it exceeds "
-                               "the width of the available space. The text should not make the window any bigger.");
+            ImGui::TextWrapped(descriptions[currentLevel]);
             ImGui::PopTextWrapPos();
 
             ImGui::EndGroup();
@@ -3339,6 +3310,7 @@ int main()
                 snprintf(label, sizeof(label), "Level %d", i);
                 if (ImGui::Button(label, ImVec2(100, 100)))
                 {
+
                     currentLevel = i;
                     levelText = "Level: " + std::to_string(i);
                 }
@@ -3361,6 +3333,7 @@ int main()
                 addNotification("LOADED LEVEL: " + std::to_string(currentLevel), 100);
                 paused = false;
                 levelSelect = false;
+                mouseControl = false;
             }
 
             ImGui::End();
