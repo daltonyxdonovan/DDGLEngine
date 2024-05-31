@@ -11,6 +11,7 @@
 #include "Ray.h"
 #include "Renderer.h"
 #include "Shader.h"
+#include "SoundManager.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
@@ -70,6 +71,7 @@ int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
 float stepHeight = 2.f;
+
 std::vector<std::string> inventory = {
     "Red Key",
 };
@@ -276,7 +278,7 @@ class Cube
         {
             position.y += 0.02;
             collider.position.y += 0.02;
-            soundToPlay.play();
+            // soundToPlay.play();
         }
     }
 
@@ -1476,6 +1478,8 @@ void Sap(int amount)
 
 int main()
 {
+    SoundManager soundManager;
+
     sf::SoundBuffer blipSelectBuffer;
     if (!blipSelectBuffer.loadFromFile("res/sounds/blipSelect.wav"))
     {
@@ -1786,6 +1790,7 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        soundManager.Update();
         va.Bind();
         vb.Bind();
         ib.Bind();
@@ -1943,7 +1948,7 @@ int main()
 
         for (int i = 0; i < voxels.size(); i++)
         {
-            if (voxels[i].door)
+            if (!camera.isFlying && voxels[i].door)
             {
                 if (voxels[i].requiresRedKey)
                 {
@@ -1958,6 +1963,9 @@ int main()
                         {
                             addNotification("Red Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
+                                soundManager.playingSounds["slideSound"] == 0)
+                                soundManager.RegisterSoundEvent("slideSound");
                         }
                         else
                         {
@@ -1983,6 +1991,9 @@ int main()
                         {
                             addNotification("Green Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
+                                soundManager.playingSounds["slideSound"] == 0)
+                                soundManager.RegisterSoundEvent("slideSound");
                         }
                         else
                         {
@@ -2007,6 +2018,9 @@ int main()
                         {
                             addNotification("Blue Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
+                                soundManager.playingSounds["slideSound"] == 0)
+                                soundManager.RegisterSoundEvent("slideSound");
                         }
                         else
                         {
@@ -2025,7 +2039,12 @@ int main()
                         glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y, voxels[i].position.z),
                         camera.position);
                     if (distanceBetweenDoorAndPlayer < 10)
+                    {
                         voxels[i].Increase(slideSound);
+                        if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
+                            soundManager.playingSounds["slideSound"] == 0)
+                            soundManager.RegisterSoundEvent("slideSound");
+                    }
                     else
                         voxels[i].Decrease();
                 }
@@ -2057,7 +2076,7 @@ int main()
                 if (buffer.x != 0 || buffer.z != 0)
                 {
                     float distanceOf = std::abs((camera.position.y - camera.heighte) - highestYOfBlock);
-                    if (distanceOf <= stepHeight)
+                    if (onGround && distanceOf <= stepHeight)
                         camera.position.y += distanceOf;
                 }
 
@@ -2307,22 +2326,6 @@ int main()
         {
 
 #pragma region CameraInfo
-
-            int distance = glm::distance(camera.position, glm::vec3(90, -10, 45));
-            /*if (distance < 10)
-            {
-                camera.position = glm::vec3(-185, 70, 50);
-                if (currentLevel < maxLevelAllowed)
-                    currentLevel++;
-                std::string levelName = "res/mapVoxels" + std::to_string(currentLevel) + ".txt";
-                voxels = LoadCubesFromFile(levelName);
-                for (int i = 0; i < voxels.size(); i++)
-                {
-                    voxels[i].collider.setSize(voxels[i].scale);
-                    voxels[i].collider.setPosition(voxels[i].position);
-                }
-            }*/
-
             ImGui::Begin("CAMERA", NULL,
                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
@@ -2439,13 +2442,10 @@ int main()
 
             ImGui::Spacing();
 
-            // Flying Checkbox
             if (ImGui::Checkbox("Flying?", &camera.isFlying))
             {
-                // Handle the change in flying status
             }
 
-            // End window
             ImGui::End();
 #pragma endregion CameraInfo
 
@@ -2457,10 +2457,9 @@ int main()
             ImGui::Text("Triangles: %lu", voxels.size() * 12);
             ImGui::Text("Lights: %lu", lights.size());
             ImGui::Text("Images: %lu", images.size());
-            // Calculate and display FPS
             static float fps = 0.0f;
             static float lastFrameTime = 0.0f;
-            const float now = glfwGetTime(); // Assuming you're using GLFW
+            const float now = glfwGetTime();
             fps = 1.0f / (now - lastFrameTime);
             lastFrameTime = now;
             ImGui::Text("FPS: %.1f", fps);
@@ -2468,15 +2467,14 @@ int main()
 
 #pragma endregion SceneInfo
         }
+
 #pragma region Health
-        // Set window flags to make the window invisible except for the image
 
         int numHearts = maxHealth / 4;
         ImGui::SetNextWindowPos(ImVec2(20, 10));
         ImGui::SetNextWindowSize(ImVec2(30 * numHearts, 30));
         ImGui::Begin("Health", NULL, window_flags);
 
-        // Draw the hearts based on the health value
         for (int i = 0; i < numHearts; ++i)
         {
             int currentHealth = health - (i * 4);
@@ -2500,7 +2498,6 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(30 * numEnergy, 30));
         ImGui::Begin("Energy", NULL, window_flags);
 
-        // Draw the hearts based on the health value
         for (int i = 0; i < numEnergy; ++i)
         {
             if (i > energy)
@@ -3298,10 +3295,13 @@ int main()
         if (paused)
         {
             ImGui::Begin("PAUSED", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-
             ImGui::SetWindowFontScale(1.0f);
+            ImGui::Spacing();
 
-            // Set window position to center
+            ImGui::SliderInt("Master Volume", &soundManager.masterVolume, 0, 100, "%d");
+            ImGui::SliderInt("Music Volume", &soundManager.musicVolume, 0, 100, "%d");
+            ImGui::SliderInt("Effect Volume", &soundManager.soundVolume, 0, 100, "%d");
+
             ImVec2 windowPos =
                 ImVec2((width - ImGui::GetWindowWidth()) / 2, ((height - ImGui::GetWindowHeight()) / 2) + 250);
             ImGui::SetWindowPos(windowPos);
@@ -3309,34 +3309,29 @@ int main()
             ImGui::Spacing();
             ImGui::Spacing();
 
-            // Centered "Resume Program" button
-            float buttonWidth = ImGui::CalcTextSize("Resume Program").x + 20; // Adding some padding
+            float buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20;
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
-            if (ImGui::Button("Resume Program", ImVec2(buttonWidth, 0)))
+            if (ImGui::Button("RESUME", ImVec2(buttonWidth, 0)))
             {
                 paused = false;
                 mouseControl = false;
             }
 
-            ImGui::Spacing();
-            buttonWidth = ImGui::CalcTextSize("LEVEL SELECT").x + 20;
+            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20;
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("LEVEL SELECT", ImVec2(buttonWidth, 0)))
             {
                 levelSelect = true;
             }
 
-            ImGui::Spacing();
-
-            // Centered "UNSTUCK" button
-            buttonWidth = ImGui::CalcTextSize("UNSTUCK").x + 20; // Adding some padding
+            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20;
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("UNSTUCK", ImVec2(buttonWidth, 0)))
             {
                 camera.position = camera.lastPosition;
                 camera.yVelocity = 0;
             }
-            buttonWidth = ImGui::CalcTextSize("WIPE MAP").x + 20;
+            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20;
             ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             if (ImGui::Button("WIPE MAP", ImVec2(buttonWidth, 0)))
             {
@@ -3346,11 +3341,8 @@ int main()
             }
 
             ImGui::Spacing();
-
-            // Centered "SAVE" and "LOAD" buttons
-            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20; // Adding some padding
-            ImGui::SetCursorPosX((ImGui::GetWindowWidth() - (buttonWidth * 2 + 10)) /
-                                 2); // Centering both buttons with some spacing
+            buttonWidth = ImGui::CalcTextSize("LOAD TUTORIAL MAP").x + 20;
+            ImGui::SetCursorPosX((ImGui::GetWindowWidth() - (buttonWidth * 2 + 10)) / 2);
             if (ImGui::Button("SAVE MAP", ImVec2(buttonWidth, 0)))
             {
                 SaveCubesToFile(voxels, "res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
@@ -3369,27 +3361,22 @@ int main()
                 }
                 needsRefresh = true;
             }
-
             ImGui::Spacing();
 
-            // String to hold the name input
-            static char name[128] = "Object";
+            /*static char name[128] = "Object";
 
-            // Create a textbox to write the name of the save
+            ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
             ImGui::InputText("Filename", name, IM_ARRAYSIZE(name));
 
-            // Create a button to save the object
             if (ImGui::Button("SAVE", ImVec2(buttonWidth, 0)))
             {
                 SaveObject(name, voxels);
-            }
+            }*/
 
-            ImGui::Spacing();
+            // ImGui::Spacing();
 
-            // Centered "Exit Program" button
-            buttonWidth = ImGui::CalcTextSize("Exit Program").x + 20; // Adding some padding
-            ImGui::SetCursorPosX((ImGui::GetWindowWidth() - buttonWidth) / 2);
-            if (ImGui::Button("Exit Program", ImVec2(buttonWidth, 0)))
+            buttonWidth = ImGui::GetWindowWidth() - 20;
+            if (ImGui::Button("EXIT", ImVec2(buttonWidth, 50)))
             {
                 glfwSetWindowShouldClose(window, true);
             }
@@ -3406,10 +3393,8 @@ int main()
 
             ImGui::Begin("LEVEL SELECT", &levelSelect, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
 
-            // Add some vertical spacing
             ImGui::Dummy(ImVec2(5.0f, 5.0f));
 
-            // Start a new horizontal group to align the level button and the text
             ImGui::BeginGroup();
 
             const char *lvlText = levelText.c_str();
@@ -3417,20 +3402,16 @@ int main()
             GLuint imageID = GetLevelImage(currentLevel, levelImages);
             ImGui::Image((void *)(intptr_t)imageID, ImVec2(100, 100));
 
-            // Move the cursor to the right of the button for the text
             ImGui::SameLine();
 
-            // Set the wrap position for the text to prevent window resizing
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 200.0f); // Adjust width as needed
+            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 200.0f);
             ImGui::TextWrapped(descriptions[currentLevel]);
             ImGui::PopTextWrapPos();
 
             ImGui::EndGroup();
 
-            // Add spacing between the top level and the 3x3 grid
             ImGui::Dummy(ImVec2(0.0f, 20.0f));
 
-            // Create a 3x3 grid for the remaining levels
             for (int i = 1; i <= 9; i++)
             {
                 if (i % 3 != 1)
@@ -3448,10 +3429,8 @@ int main()
                 }
             }
 
-            // Add spacing before the LOAD LEVEL button
             ImGui::Dummy(ImVec2(0.0f, 0.0f));
 
-            // Add a button that is the width of the window at the bottom
             if (ImGui::Button("LOAD LEVEL", ImVec2(ImGui::GetContentRegionAvail().x, 50)))
             {
                 voxels = LoadCubesFromFile("res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
@@ -3476,7 +3455,6 @@ int main()
 #pragma region Notifications
         ImGui::SetNextWindowSize(ImVec2(500, 500));
 
-        // draw notifications from the notification queue
         for (int i = 0; i < notifications.size(); i++)
         {
             ImGui::Begin("Notification", NULL, window_flags);
