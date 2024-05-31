@@ -1965,6 +1965,8 @@ int main()
 
         for (int i = 0; i < voxels.size(); i++)
         {
+            float distanceToCamera = glm::distance(camera.position, voxels[i].position);
+
             if (!camera.isFlying && voxels[i].door)
             {
                 HandleImpactSound(voxels[i], soundManager);
@@ -2079,6 +2081,8 @@ int main()
                     }
                 }
             }
+            if (distanceToCamera > 15)
+                continue;
             glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
             glm::mat4 rotationMatrix = glm::eulerAngleXYZ(radiansRotation.x, radiansRotation.y, radiansRotation.z);
 
