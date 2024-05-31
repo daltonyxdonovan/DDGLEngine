@@ -270,12 +270,13 @@ class Cube
         invisible = yes;
     }
 
-    void Increase()
+    void Increase(sf::Sound &soundToPlay)
     {
         if (position.y < positionHighest.y)
         {
             position.y += 0.02;
             collider.position.y += 0.02;
+            soundToPlay.play();
         }
     }
 
@@ -1475,13 +1476,29 @@ void Sap(int amount)
 
 int main()
 {
-    sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("res/sounds/blipSelect.wav"))
+    sf::SoundBuffer blipSelectBuffer;
+    if (!blipSelectBuffer.loadFromFile("res/sounds/blipSelect.wav"))
     {
-        std::cout << "couldn't load sound" << std::endl;
+        std::cout << "couldn't load SELECT sound" << std::endl;
     }
-    sf::Sound sound;
-    sound.setBuffer(buffer);
+    sf::Sound selectSound;
+    selectSound.setBuffer(blipSelectBuffer);
+
+    sf::SoundBuffer stoneImpactBuffer;
+    if (!stoneImpactBuffer.loadFromFile("res/sounds/stoneImpact.wav"))
+    {
+        std::cout << "couldn't load IMPACT sound" << std::endl;
+    }
+    sf::Sound impactSound;
+    impactSound.setBuffer(stoneImpactBuffer);
+
+    sf::SoundBuffer stoneSlideBuffer;
+    if (!stoneSlideBuffer.loadFromFile("res/sounds/stoneSlide.wav"))
+    {
+        std::cout << "couldn't load SLIDE sound" << std::endl;
+    }
+    sf::Sound slideSound;
+    slideSound.setBuffer(stoneSlideBuffer);
 
 #pragma region INITIALIZATION
 
@@ -1940,7 +1957,7 @@ int main()
                         if (distanceBetweenDoorAndPlayer < 10)
                         {
                             addNotification("Red Key found in Inventory!", 1);
-                            voxels[i].Increase();
+                            voxels[i].Increase(slideSound);
                         }
                         else
                         {
@@ -1965,7 +1982,7 @@ int main()
                         if (distanceBetweenDoorAndPlayer < 10)
                         {
                             addNotification("Green Key found in Inventory!", 1);
-                            voxels[i].Increase();
+                            voxels[i].Increase(slideSound);
                         }
                         else
                         {
@@ -1989,7 +2006,7 @@ int main()
                         if (distanceBetweenDoorAndPlayer < 10)
                         {
                             addNotification("Blue Key found in Inventory!", 1);
-                            voxels[i].Increase();
+                            voxels[i].Increase(slideSound);
                         }
                         else
                         {
@@ -2008,7 +2025,7 @@ int main()
                         glm::vec3(voxels[i].position.x, voxels[i].position.y - voxels[i].scale.y, voxels[i].position.z),
                         camera.position);
                     if (distanceBetweenDoorAndPlayer < 10)
-                        voxels[i].Increase();
+                        voxels[i].Increase(slideSound);
                     else
                         voxels[i].Decrease();
                 }
@@ -2047,7 +2064,7 @@ int main()
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
                 if (voxels[i].liftingPlatform)
                 {
-                    voxels[i].Increase();
+                    voxels[i].Increase(slideSound);
                 }
             }
 
@@ -2097,7 +2114,7 @@ int main()
         {
             showDebugCooldown = 30;
             showDebugInfo = !showDebugInfo;
-            sound.play();
+            selectSound.play();
         }
 
         if (camera.position.y < -50)
