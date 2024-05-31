@@ -2108,7 +2108,6 @@ int main()
                     float distanceOf = std::abs(camera.positionFeet.y - highestYOfBlock);
                     if (onGround && distanceOf <= stepHeight)
                         camera.position.y += distanceOf;
-                    std::cout << std::to_string(distanceOf) << std::endl;
                 }
 
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;

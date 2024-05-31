@@ -14,6 +14,9 @@ class SoundManager
     int masterVolume{50};
     int musicVolume{10};
     int soundVolume{50};
+    int masterVolumeBuffer{50};
+    int musicVolumeBuffer{10};
+    int soundVolumeBuffer{50};
     glm::vec3 playerPosition = glm::vec3(0);
     int maxDistance = 50;
 
@@ -119,6 +122,12 @@ class SoundManager
         CleanupStoppedSounds();
         sf::Listener::setPosition(playerPosition.x, playerPosition.y, playerPosition.z);
         sf::Listener::setDirection(playerDirection.x, playerDirection.y, playerDirection.z);
+
+        if (musicVolume != musicVolumeBuffer)
+        {
+            musicVolumeBuffer = musicVolume;
+            SetBackgroundMusicVolume(musicVolume);
+        }
     }
 
     void RegisterEventCallback(std::function<void()> callback)
