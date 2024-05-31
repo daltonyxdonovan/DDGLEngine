@@ -1478,6 +1478,21 @@ void Sap(int amount)
     Sap(amount, energy, energyCooldown, maxEnergy);
 }
 
+void HandleImpactSound(Cube &voxel, SoundManager &soundManager)
+{
+    if (((int)voxel.position.y == (int)voxel.positionHighest.y && voxel.playedSoundAlready == false) ||
+        ((int)voxel.position.y == (int)voxel.positionLowest.y && voxel.playedSoundAlready == false))
+    {
+        soundManager.RegisterSoundEvent("impactSound", voxel.position);
+        voxel.playedSoundAlready = true;
+    }
+    if ((int)voxel.position.y != (int)voxel.positionHighest.y && (int)voxel.position.y != (int)voxel.positionLowest.y &&
+        voxel.playedSoundAlready == true)
+    {
+        voxel.playedSoundAlready = false;
+    }
+}
+
 int main()
 {
     SoundManager soundManager;
@@ -1792,7 +1807,7 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        soundManager.Update();
+        soundManager.Update(camera.position, camera.getViewDirection());
         va.Bind();
         vb.Bind();
         ib.Bind();
@@ -1952,6 +1967,7 @@ int main()
         {
             if (!camera.isFlying && voxels[i].door)
             {
+                HandleImpactSound(voxels[i], soundManager);
                 if (voxels[i].requiresRedKey)
                 {
                     if (HasInInventory("Red Key"))
@@ -1965,41 +1981,21 @@ int main()
                         {
                             addNotification("Red Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
-                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
-                                soundManager.playingSounds["slideSound"] == 0)
-                                soundManager.RegisterSoundEvent("slideSound");
-                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
-                            {
-                                soundManager.RegisterSoundEvent("impactSound");
-                                voxels[i].playedSoundAlready = true;
-                            }
-                            
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                         else
                         {
                             voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }
-                        if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                            if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                        if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                            soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                     }
                 }
 
@@ -2016,43 +2012,21 @@ int main()
                         {
                             addNotification("Green Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
-                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
-                                soundManager.playingSounds["slideSound"] == 0)
-                                soundManager.RegisterSoundEvent("slideSound");
-                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
-                            {
-                                soundManager.RegisterSoundEvent("impactSound");
-                                voxels[i].playedSoundAlready = true;
-                            }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                         else
                         {
                             voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                            if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }
-                        if (voxels[i].position.y != voxels[i].positionLowest.y)
-                        {
-                            voxels[i].playedSoundAlready = false;
-                        }
+                        if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                            soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                     }
                 }
 
@@ -2068,43 +2042,21 @@ int main()
                         {
                             addNotification("Blue Key found in Inventory!", 1);
                             voxels[i].Increase(slideSound);
-                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
-                                soundManager.playingSounds["slideSound"] == 0)
-                                soundManager.RegisterSoundEvent("slideSound");
-                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
-                            {
-                                soundManager.RegisterSoundEvent("impactSound");
-                                voxels[i].playedSoundAlready = true;
-                            }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                            if (voxels[i].position.y < voxels[i].positionHighest.y - .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                         else
                         {
                             voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                            if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                                soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }
-                        if (voxels[i].position.y != voxels[i].positionLowest.y)
-                        {
-                            voxels[i].playedSoundAlready = false;
-                        }
+                        if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                            soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                     }
                 }
 
@@ -2116,29 +2068,14 @@ int main()
                     if (distanceBetweenDoorAndPlayer < 10)
                     {
                         voxels[i].Increase(slideSound);
-                        if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
-                            soundManager.playingSounds["slideSound"] == 0)
-                            soundManager.RegisterSoundEvent("slideSound");
-                        if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                        if (voxels[i].position.y < voxels[i].positionHighest.y - .1f)
+                            soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                     }
                     else
                     {
                         voxels[i].Decrease();
-                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
-                        {
-                            soundManager.RegisterSoundEvent("impactSound");
-                            voxels[i].playedSoundAlready = true;
-                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
-                            {
-                                voxels[i].playedSoundAlready = false;
-                            }
+                        if (voxels[i].position.y > voxels[i].positionLowest.y + .1f)
+                            soundManager.RegisterSoundEvent("slideSound", voxels[i].position);
                     }
                 }
             }
@@ -2614,9 +2551,10 @@ int main()
         {
 
             ImGui::Begin("CubeLookingAt", NULL,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                         /*ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
-                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration);
+                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration*/
+                         ImGuiWindowFlags_NoCollapse);
             ImGui::Checkbox("Pin", &pinned);
             ImGui::SameLine();
             ImGui::Text("VOXEL %d", cubeLookingAt->index);
@@ -2624,9 +2562,15 @@ int main()
             ImGui::Checkbox("Requires Red Key?", &cubeLookingAt->requiresRedKey);
             ImGui::Checkbox("Requires Blue Key?", &cubeLookingAt->requiresBlueKey);
             ImGui::Checkbox("Requires Green Key?", &cubeLookingAt->requiresGreenKey);
+            ImGui::Checkbox("soundNeedsPlayed?", &cubeLookingAt->needsSoundPlayed);
+            ImGui::Checkbox("PlayedSoundAlready?", &cubeLookingAt->playedSoundAlready);
             ImGui::Spacing();
             ImGui::Text("Position:                    (%d,   %d,   %d)", (int)cubeLookingAt->position.x,
                         (int)cubeLookingAt->position.y, (int)cubeLookingAt->position.z);
+            ImGui::Text("PositionH:                    (%d,   %d,   %d)", (int)cubeLookingAt->positionHighest.x,
+                        (int)cubeLookingAt->positionHighest.y, (int)cubeLookingAt->positionHighest.z);
+            ImGui::Text("PositionL:                    (%d,   %d,   %d)", (int)cubeLookingAt->positionLowest.x,
+                        (int)cubeLookingAt->positionLowest.y, (int)cubeLookingAt->positionLowest.z);
             ImGui::Text("Scale   :                    (%.1f, %.1f, %.1f)", cubeLookingAt->scale.x,
                         cubeLookingAt->scale.y, cubeLookingAt->scale.z);
             ImGui::Spacing();

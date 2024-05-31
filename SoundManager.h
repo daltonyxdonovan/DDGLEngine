@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Audio.hpp>
 #include <functional>
+#include <glm/glm.hpp>
 #include <iostream>
 #include <map>
 #include <unordered_map>
@@ -13,19 +14,22 @@ class SoundManager
     int masterVolume{50};
     int musicVolume{10};
     int soundVolume{50};
+    glm::vec3 playerPosition = glm::vec3(0);
+    int maxDistance = 50;
 
     SoundManager()
     {
         std::cout << "Initialising sound manager..." << std::endl;
         buffer.loadFromFile("res/sounds/blipSelect.wav");
         buffer2.loadFromFile("res/sounds/stoneImpact.wav");
-        buffer3.loadFromFile("res/sounds/stoneSlide.wav");
+        buffer3.loadFromFile("res/sounds/stoneSlide2.wav");
         std::cout << "Loaded sounds into buffers!" << std::endl;
 
         for (int i = 0; i < MaxSounds; ++i)
         {
             sf::Sound sound;
             sound.setVolume(static_cast<float>(masterVolume));
+            sound.setRelativeToListener(false);
             sounds.push_back(sound);
         }
         std::cout << "Created vector of Sounds" << std::endl;
@@ -38,37 +42,7 @@ class SoundManager
         std::cout << "SUCCESS: Sound manager initialised!" << std::endl;
     }
 
-    void PlaySound(int index)
-    {
-        if (index >= 0 && index < MaxSounds)
-        {
-            sounds[index].play();
-            sounds[index].setVolume(static_cast<float>(masterVolume * soundVolume / 100.0));
-        }
-    }
-
-    void SetMasterVolume(int vol)
-    {
-        masterVolume = vol;
-        backgroundMusic.setVolume(static_cast<float>(masterVolume * musicVolume / 100.0));
-        for (auto &sound : sounds)
-        {
-            sound.setVolume(static_cast<float>(masterVolume * soundVolume / 100.0));
-        }
-    }
-
-    void SetSoundVolume(int vol)
-    {
-        soundVolume = vol;
-    }
-
-    void SetMusicVolume(int vol)
-    {
-        musicVolume = vol;
-        backgroundMusic.setVolume(static_cast<float>(masterVolume * musicVolume / 100.0));
-    }
-
-    void PlaySound(const std::string &name)
+    void PlaySound(const std::string &name, const glm::vec3 &position)
     {
         if (playingSounds[name])
         {
@@ -84,9 +58,23 @@ class SoundManager
                 if (sound.getStatus() == sf::Sound::Stopped)
                 {
                     sound.setBuffer(*soundBuffer);
+                    sound.setPosition(position.x, position.y, position.z);
+                    sound.setAttenuation(attenuation);
+                    sound.setMinDistance(minDistance);
+
+                    // Calculate distance between player and sound source
+                    glm::vec3 soundDirection =
+                        glm::vec3(sound.getPosition().x, sound.getPosition().y, sound.getPosition().z) - playerPosition;
+                    float distance = glm::length(soundDirection);
+
+                    // Adjust volume based on distance (larger distance = quieter)
+                    float volume = static_cast<float>(masterVolume * soundVolume / 100.0f) *
+                                   (1.0f - distance / maxDistance); // Adjust maxDistance for falloff range
+
+                    sound.setVolume(std::max(volume, 0.0f)); // Ensure volume doesn't go negative
                     sound.play();
-                    sound.setVolume(static_cast<float>(masterVolume * soundVolume / 100.0));
                     playingSounds[name] = true;
+                    soundPositions[&sound] = position;
                     break;
                 }
             }
@@ -124,10 +112,13 @@ class SoundManager
         scheduledSounds.clear();
     }
 
-    void Update()
+    void Update(const glm::vec3 &playerPosition, const glm::vec3 &playerDirection)
     {
+        this->playerPosition = playerPosition;
         HandleEvent();
         CleanupStoppedSounds();
+        sf::Listener::setPosition(playerPosition.x, playerPosition.y, playerPosition.z);
+        sf::Listener::setDirection(playerDirection.x, playerDirection.y, playerDirection.z);
     }
 
     void RegisterEventCallback(std::function<void()> callback)
@@ -135,15 +126,35 @@ class SoundManager
         eventCallbacks.push_back(callback);
     }
 
-    void RegisterSoundEvent(const std::string &name)
+    void RegisterSoundEvent(const std::string &name, const glm::vec3 &position)
     {
         if (scheduledSounds.find(name) == scheduledSounds.end())
         {
             scheduledSounds.insert(name);
-            RegisterEventCallback([&, name]() { PlaySound(name); });
+            RegisterEventCallback([&, name, position]() { PlaySound(name, position); });
         }
     }
-    std::unordered_map<std::string, bool> playingSounds;
+
+    void SetMasterVolume(int vol)
+    {
+        masterVolume = vol;
+        backgroundMusic.setVolume(static_cast<float>(masterVolume * musicVolume / 100.0));
+        for (auto &sound : sounds)
+        {
+            sound.setVolume(static_cast<float>(masterVolume * soundVolume / 100.0));
+        }
+    }
+
+    void SetSoundVolume(int vol)
+    {
+        soundVolume = vol;
+    }
+
+    void SetMusicVolume(int vol)
+    {
+        musicVolume = vol;
+        backgroundMusic.setVolume(static_cast<float>(masterVolume * musicVolume / 100.0));
+    }
 
   private:
     sf::SoundBuffer buffer;  // select
@@ -156,7 +167,12 @@ class SoundManager
 
     sf::Music backgroundMusic;
 
+    std::unordered_map<std::string, bool> playingSounds;
+    std::unordered_map<sf::Sound *, glm::vec3> soundPositions;
+
     static const int MaxSounds = 20;
+    const float attenuation = 5.0f;  // Higher attenuation for noticeable falloff
+    const float minDistance = 10.0f; // Smaller min distance for closer falloff
 
     void CleanupStoppedSounds()
     {
@@ -169,6 +185,7 @@ class SoundManager
                     if (sound.getBuffer() == GetBufferForName(entry.first))
                     {
                         entry.second = false;
+                        soundPositions.erase(&sound);
                         break;
                     }
                 }
