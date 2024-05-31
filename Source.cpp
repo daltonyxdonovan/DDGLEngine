@@ -70,7 +70,7 @@ int currentLevel = 0;
 int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
-float stepHeight = 2.f;
+float stepHeight = 3.f;
 
 std::vector<std::string> inventory = {
     "Red Key",
@@ -2105,9 +2105,10 @@ int main()
                 }
                 if (buffer.x != 0 || buffer.z != 0)
                 {
-                    float distanceOf = std::abs((camera.position.y - camera.heighte) - highestYOfBlock);
+                    float distanceOf = std::abs(camera.positionFeet.y - highestYOfBlock);
                     if (onGround && distanceOf <= stepHeight)
                         camera.position.y += distanceOf;
+                    std::cout << std::to_string(distanceOf) << std::endl;
                 }
 
                 // camera.position.y = (camera.position.y * 100.0f) / 100.0f;
@@ -2268,9 +2269,12 @@ int main()
                                        sizeToSave.x, sizeToSave.y, sizeToSave.z, STRIDE);
 
                         needsRefresh = true;
-                        voxels[0].scale = glm::vec3(1, 1, 1);
-                        vb.UpdateScale(0, voxels[0].position, sizeToSave.x, sizeToSave.y, sizeToSave.z, STRIDE);
-                        voxels[0].collider.setSize(sizeToSave);
+                        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                        {
+                            voxels[0].scale = glm::vec3(1, 1, 1);
+                            vb.UpdateScale(0, voxels[0].position, sizeToSave.x, sizeToSave.y, sizeToSave.z, STRIDE);
+                            voxels[0].collider.setSize(sizeToSave);
+                        }
                     }
                     else
                     {
