@@ -90,6 +90,8 @@ class Cube
     int textureIndex = 0;
     std::vector<glm::vec3> verticesAfterTransformation = {};
     OBBCollider collider;
+    bool needsSoundPlayed = false;
+    bool playedSoundAlready = false;
     int index = 0;
     bool invisible = false;
     std::vector<float> cornerPositions;
@@ -1966,15 +1968,38 @@ int main()
                             if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
                                 soundManager.playingSounds["slideSound"] == 0)
                                 soundManager.RegisterSoundEvent("slideSound");
+                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
+                            {
+                                soundManager.RegisterSoundEvent("impactSound");
+                                voxels[i].playedSoundAlready = true;
+                            }
+                            
                         }
                         else
                         {
                             voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }
+                        if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                     }
                 }
 
@@ -1994,15 +2019,40 @@ int main()
                             if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
                                 soundManager.playingSounds["slideSound"] == 0)
                                 soundManager.RegisterSoundEvent("slideSound");
+                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
+                            {
+                                soundManager.RegisterSoundEvent("impactSound");
+                                voxels[i].playedSoundAlready = true;
+                            }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                         }
                         else
                         {
                             voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }
+                        if (voxels[i].position.y != voxels[i].positionLowest.y)
+                        {
+                            voxels[i].playedSoundAlready = false;
+                        }
                     }
                 }
 
@@ -2021,15 +2071,40 @@ int main()
                             if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
                                 soundManager.playingSounds["slideSound"] == 0)
                                 soundManager.RegisterSoundEvent("slideSound");
+                            if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
+                            {
+                                soundManager.RegisterSoundEvent("impactSound");
+                                voxels[i].playedSoundAlready = true;
+                            }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                         }
                         else
                         {
                             voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                         }
                     }
                     else
                     {
                         voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }
+                        if (voxels[i].position.y != voxels[i].positionLowest.y)
+                        {
+                            voxels[i].playedSoundAlready = false;
+                        }
                     }
                 }
 
@@ -2044,9 +2119,27 @@ int main()
                         if (voxels[i].position.y < voxels[i].positionHighest.y - .1f &&
                             soundManager.playingSounds["slideSound"] == 0)
                             soundManager.RegisterSoundEvent("slideSound");
+                        if (voxels[i].position.y == voxels[i].positionHighest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
                     }
                     else
+                    {
                         voxels[i].Decrease();
+                        if (voxels[i].position.y == voxels[i].positionLowest.y && voxels[i].playedSoundAlready == false)
+                        {
+                            soundManager.RegisterSoundEvent("impactSound");
+                            voxels[i].playedSoundAlready = true;
+                        }if (voxels[i].position.y != voxels[i].positionHighest.y && voxels[i].position.y != voxels[i].positionLowest.y)
+                            {
+                                voxels[i].playedSoundAlready = false;
+                            }
+                    }
                 }
             }
             glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
