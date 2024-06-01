@@ -2187,7 +2187,7 @@ int main()
         }
 
         //  if left mouse is pressed
-        if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        if (camera.isFlying && !paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
             if (pinned)
             {
@@ -2240,7 +2240,7 @@ int main()
             }
         }
 
-        if (!paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        if (camera.isFlying && !paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
         {
             cooldownForBreak++;
             if (cooldownForBreak > 5)
@@ -2316,7 +2316,7 @@ int main()
             }
         }
 
-        if (!paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
+        if (camera.isFlying && !paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
             glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
         {
             if (cubeLookingAt != nullptr)
@@ -2330,7 +2330,7 @@ int main()
             }
         }
 
-        if (!paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
+        if (camera.isFlying && !paused && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS &&
             glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
         {
             if (cubeLookingAt != nullptr)
