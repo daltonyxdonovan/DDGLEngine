@@ -1669,8 +1669,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
-    /*GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", primaryMonitor, NULL);*/
-    GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", primaryMonitor, NULL);
+    // GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", NULL, NULL);
 
     if (!window)
     {
