@@ -36,6 +36,9 @@ class Camera
     float fov = 75;
     float heighte = 2;
     int numOfFeetOnGround = 0;
+    int toggleFlying = 0;
+    bool heldFlyLastFrame = false;
+    bool jumpNotPressedThisFrame = true;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
@@ -88,11 +91,25 @@ class Camera
         return front;
     }
 
-    void Update(GLFWwindow *window, float dt, bool &isMouseActive, int energy, bool recharging, bool needsRecharging)
+    void emulateMouseClick(GLFWwindow *window, int button, int action)
+    {
+        glfwSetMouseButtonCallback(window, nullptr); // Disable the callback temporarily
+        glfwPostEmptyEvent();                        // Ensure any pending events are processed
+        glfwSetMouseButtonCallback(window, nullptr); // Re-enable the callback
+        glfwPollEvents();                            // Poll events to ensure state is updated
+        glfwPostEmptyEvent();                        // Trigger an empty event to update the state
+        glfwSetMouseButtonCallback(window, nullptr); // Re-enable the callback if necessary
+    }
+
+    void Update(GLFWwindow *window, float dt, bool &isMouseActive, int energy, bool recharging, bool needsRecharging,
+                bool &placeSomething, bool &deleteSomething)
     {
         // if (dt > 0.016f)
         //     dt = 0.016f;
-
+        if (isFlying)
+            fov = 80;
+        else
+            fov = 75;
         bool moveForward = false;
         bool moveBackward = false;
         bool moveLeft = false;
@@ -105,7 +122,10 @@ class Camera
         const float *thumbstickAxes = nullptr;
         int amountOfJoysticksConnected = 0;
         float cameraSpeed = 250;
-        float rotationSpeed = .25f;
+        float rotationSpeed = 25 * dt;
+        bool resetRun = true;
+        if (toggleFlying > 0)
+            toggleFlying--;
 
         positionFeet = glm::vec3(position.x, position.y - heighte, position.z);
         pointXPlus = glm::vec3(position.x + .75f, position.y - (heighte / 2), position.z);
@@ -144,20 +164,23 @@ class Camera
             buttons = glfwGetJoystickButtons(properControllerIndex, &count);
             thumbstickAxes = glfwGetJoystickAxes(properControllerIndex, &count);
 
-            if (buttons[11] == GLFW_PRESS)
+            if (buttons[7] == GLFW_PRESS)
             {
                 isMouseActive = true;
                 cooldown = 20;
+                std::cout << "Pause pressed!" << std::endl;
             }
-            if (buttons[12] == GLFW_PRESS)
+            if (buttons[6] == GLFW_PRESS)
             {
                 isMouseActive = false;
                 cooldown = 20;
+                std::cout << "Unpause pressed!" << std::endl;
             }
         }
 
         // if leftShift is pressed, run
-        if ((!needsRecharging || isFlying) && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        if ((!needsRecharging || isFlying) &&
+            (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || (buttons[13] == GLFW_PRESS)))
         {
             isRunning = true;
         }
@@ -197,16 +220,15 @@ class Camera
         {
             // in the pause menu
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            return;
 
             if (properControllerIndex != -1)
             {
                 float xoffsetController = 0;
                 if (thumbstickAxes[2] > 0.1 || thumbstickAxes[2] < -0.1)
-                    xoffsetController = thumbstickAxes[2] * 4;
+                    xoffsetController = thumbstickAxes[2] * 16;
                 float yoffsetController = 0;
                 if (thumbstickAxes[3] > 0.1 || thumbstickAxes[3] < -0.1)
-                    yoffsetController = -thumbstickAxes[3] * 4;
+                    yoffsetController = thumbstickAxes[3] * 16;
 
                 // move the mouse using the controller
                 double xpos, ypos;
@@ -245,48 +267,92 @@ class Camera
         {
             if (axes[0] == 1 || thumbstickAxes[1] < -0.5)
             {
-                glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
+                glm::vec3 movement = dt * (cameraSpeed * glm::normalize(target - position));
                 movement.y = 0;
+
+                resetRun = false;
                 velocity += movement;
                 moveForward = true;
             }
 
             if (axes[0] == 4 || thumbstickAxes[1] > 0.5)
             {
-                glm::vec3 movement = cameraSpeed * glm::normalize(target - position);
+                glm::vec3 movement = dt * (cameraSpeed * glm::normalize(target - position));
                 movement.y = 0;
                 velocity -= movement;
                 moveBackward = true;
+                resetRun = false;
             }
 
             if (axes[0] == 8 || thumbstickAxes[0] < -0.5)
             {
-                glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
+                glm::vec3 movement = dt * (cameraSpeed * glm::normalize(glm::cross(target - position, worldUp)));
                 movement.y = 0;
                 velocity -= movement;
                 moveLeft = true;
+                resetRun = false;
             }
 
             if (axes[0] == 2 || thumbstickAxes[0] > 0.5)
             {
-                glm::vec3 movement = cameraSpeed * glm::normalize(glm::cross(target - position, worldUp));
+                glm::vec3 movement = dt * (cameraSpeed * glm::normalize(glm::cross(target - position, worldUp)));
                 movement.y = 0;
                 velocity += movement;
                 moveRight = true;
+                resetRun = false;
             }
 
             if (buttons[0] == GLFW_PRESS)
             {
-                if (onGround)
+                if (toggleFlying != 0 && !heldFlyLastFrame)
+                    isFlying = !isFlying;
+                toggleFlying = 10;
+                heldFlyLastFrame = true;
+                if (!isFlying)
                 {
-                    yVelocity = .2f;
-                    onGround = false;
-                    isJumping = true;
+
+                    if (onGround)
+                    {
+                        yVelocity =
+                            sqrtf(2.0f * jumpHeight * 9.81f); // Calculate initial velocity based on desired jump height
+                        onGround = false;
+                        isJumping = true;
+                    }
                 }
+                else
+                {
+                    position.y += .1f;
+                }
+
+                jumpNotPressedThisFrame = false;
             }
 
             if (buttons[1] == GLFW_PRESS)
             {
+            }
+
+            if (isMouseActive)
+            {
+
+                if (thumbstickAxes[4] > 0.5)
+                    placeSomething = true;
+
+                if (thumbstickAxes[5] > 0.5)
+                    deleteSomething = true;
+            }
+            else
+            {
+                if (thumbstickAxes[4] > 0.5)
+                {
+                    emulateMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS);
+                    // Emulate left click release
+                    emulateMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE);
+                }
+
+                if (thumbstickAxes[5] > 0.5)
+                {
+                    // right click mouse
+                }
             }
         }
 
@@ -294,11 +360,11 @@ class Camera
         {
             glm::vec3 movement = dt * (cameraSpeed * glm::normalize(target - position));
             movement.y = 0;
-
+            resetRun = false;
             velocity += movement;
             moveForward = true;
         }
-        else
+        if (resetRun)
             isRunning = false;
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -327,6 +393,11 @@ class Camera
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
+
+            if (toggleFlying != 0 && !heldFlyLastFrame)
+                isFlying = !isFlying;
+            heldFlyLastFrame = true;
+            toggleFlying = 10;
             if (!isFlying)
             {
 
@@ -342,7 +413,19 @@ class Camera
             {
                 position.y += .1f;
             }
+
+            jumpNotPressedThisFrame = false;
         }
+
+        if (jumpNotPressedThisFrame)
+        {
+            heldFlyLastFrame = false;
+        }
+
+        jumpNotPressedThisFrame = true;
+
+        if (resetRun)
+            isRunning = false;
 
         if (velocity.x > maxVelocity)
             velocity.x = maxVelocity;

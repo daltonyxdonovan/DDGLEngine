@@ -71,6 +71,8 @@ int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
 float stepHeight = 3.f;
+bool leftClicked = false;
+bool rightClicked = false;
 
 std::vector<std::string> inventory = {
     "Red Key",
@@ -335,6 +337,7 @@ class Image
     int index = 0;
     bool invisible = false;
     std::vector<float> cornerPositions;
+    Texture texture;
     std::vector<unsigned int> indices = {
         0, 1, 2, 2, 3, 0, // front face
     };
@@ -640,10 +643,30 @@ std::vector<Light *> LoadLightsFromFile(const std::string &filename)
     return lights;
 }
 
+void ConcatenateArrays(float *&positions, size_t positionsSize, float *positionsUI, size_t positionsUISize)
+{
+    // Step 1: Allocate new array
+    size_t newSize = positionsSize + positionsUISize;
+    float *newPositions = new float[newSize];
+
+    // Step 2: Copy elements from positions to newPositions
+    std::copy(positions, positions + positionsSize, newPositions);
+
+    // Step 3: Copy elements from positionsUI to newPositions
+    std::copy(positionsUI, positionsUI + positionsUISize, newPositions + positionsSize);
+
+    // Step 4: Delete the old positions array
+    delete[] positions;
+
+    // Step 5: Update positions to point to the new array
+    positions = newPositions;
+}
+
 void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
              float *&positions, VertexBufferLayout &layout, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib,
              unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
-             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2)
+             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2,
+             float *&positionsUI)
 {
     // addNotification("Refreshing map", 10);
     if (PRINTLOOPLOG)
@@ -900,6 +923,9 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
             }
         }
     }
+
+    /*ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * 6U * AMOUNT_OF_INDICES2));*/
 
     va.Unbind();
     vb.Unbind();
@@ -1496,6 +1522,8 @@ void HandleImpactSound(Cube &voxel, SoundManager &soundManager)
 int main()
 {
     SoundManager soundManager;
+    Image image(glm::vec3(0), glm::vec3(1));
+    image.SetCornerPositions(0, 0);
 
     sf::SoundBuffer blipSelectBuffer;
     if (!blipSelectBuffer.loadFromFile("res/sounds/blipSelect.wav"))
@@ -1530,8 +1558,6 @@ int main()
     std::vector<Cube> voxels;
     std::vector<Object> objects;
     std::vector<Image> images;
-    Image img(glm::vec3(.5f, .5f, .5f), glm::vec3(1, 1, 1));
-    images.push_back(img);
     voxels.push_back(cubeDummy);
 
     voxels = LoadCubesFromFile("res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
@@ -1626,6 +1652,9 @@ int main()
         }
     }
 
+    /* ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                       (images.size() * STRIDE2 * AMOUNT_OF_INDICES2));*/
+
     if (PRINTLOG)
         std::cout << "Initialising GLFW and GL3W..." << std::endl;
 
@@ -1638,7 +1667,11 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(width, height, "DDGL", NULL, NULL);
+    GLFWmonitor *primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode *mode = glfwGetVideoMode(primaryMonitor);
+    /*GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", primaryMonitor, NULL);*/
+    GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "DDGL", NULL, NULL);
+
     if (!window)
     {
         std::cerr << "FAILED to create window\n";
@@ -1682,7 +1715,9 @@ int main()
     if (PRINTLOG)
         std::cout << "Finally creating vertex buffer from info..." << std::endl;
 
-    VertexBuffer vb(positions, (voxels.size() * FULL_STRIDE));
+    unsigned int sizeHere = (voxels.size() * FULL_STRIDE);
+
+    VertexBuffer vb(positions, sizeHere);
     if (PRINTLOG)
         std::cout << "Finally creating vertex layout from info..." << std::endl;
     VertexBufferLayout layout;
@@ -1807,6 +1842,7 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
+        paused = mouseControl;
         soundManager.Update(camera.position, camera.getViewDirection());
         va.Bind();
         vb.Bind();
@@ -1865,7 +1901,8 @@ int main()
         if (needsRefresh)
         {
             Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
-                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2);
+                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2,
+                    positionsUI);
         }
 
         if (PRINTLOOPLOG)
@@ -1880,6 +1917,8 @@ int main()
         glm::mat4 mvp = proj * view * model;
         shader.SetUniform1f("ambientLight", ambientLightLevel);
         shader.SetUniformMat4f("u_MVP", mvp);
+        shader.SetUniformMat4f("u_Model", model);
+        shader.SetUniformMat4f("u_View", view);
         int numLights = lights.size();
 
         for (int i = 0; i < numLights; i++)
@@ -1915,7 +1954,7 @@ int main()
         if (PRINTLOOPLOG)
             std::cout << "updating camera" << std::endl;
 
-        camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging);
+        camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging, rightClicked, leftClicked);
         camera.collider.setPosition(camera.position);
         float val = camera.heighte;
         glm::vec3 val2(val / 4, val * 2, val / 4);
@@ -2081,7 +2120,7 @@ int main()
                     }
                 }
             }
-            if (distanceToCamera > 15)
+            if (distanceToCamera > 71)
                 continue;
             glm::vec3 radiansRotation = glm::radians(voxels[i].rotation);
             glm::mat4 rotationMatrix = glm::eulerAngleXYZ(radiansRotation.x, radiansRotation.y, radiansRotation.z);
@@ -2187,7 +2226,8 @@ int main()
         }
 
         //  if left mouse is pressed
-        if (camera.isFlying && !paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        if (camera.isFlying && !paused &&
+            (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS || rightClicked))
         {
             if (pinned)
             {
@@ -2240,7 +2280,8 @@ int main()
             }
         }
 
-        if (camera.isFlying && !paused && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        if (camera.isFlying && !paused &&
+            (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || leftClicked))
         {
             cooldownForBreak++;
             if (cooldownForBreak > 5)
@@ -2364,9 +2405,10 @@ int main()
 
 #pragma region CameraInfo
             ImGui::Begin("CAMERA", NULL,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                         /*ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
-                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration);
+                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration*/
+                         NULL);
 
             // Title
             ImGui::Text("Camera Information - F1 TO TOGGLE");
@@ -2488,7 +2530,7 @@ int main()
 
 #pragma region SceneInfo
 
-            ImGui::Begin("SceneInfo", NULL, window_flags);
+            ImGui::Begin("SceneInfo", NULL, NULL);
             ImGui::Text("Objects: %lu", voxels.size());
             ImGui::Text("Indices: %d", indicesCount);
             ImGui::Text("Triangles: %lu", voxels.size() * 12);
@@ -2561,7 +2603,7 @@ int main()
                          /*ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
                              ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration*/
-                         ImGuiWindowFlags_NoCollapse);
+                         NULL);
             ImGui::Checkbox("Pin", &pinned);
             ImGui::SameLine();
             ImGui::Text("VOXEL %d", cubeLookingAt->index);
@@ -3346,8 +3388,7 @@ int main()
             ImGui::SliderInt("Music Volume", &soundManager.musicVolume, 0, 100, "%d");
             ImGui::SliderInt("Effect Volume", &soundManager.soundVolume, 0, 100, "%d");
 
-            ImVec2 windowPos =
-                ImVec2((width - ImGui::GetWindowWidth()) / 2, ((height - ImGui::GetWindowHeight()) / 2) + 250);
+            ImVec2 windowPos = ImVec2((width - ImGui::GetWindowWidth()) / 2, ((height - ImGui::GetWindowHeight()) / 2));
             ImGui::SetWindowPos(windowPos);
 
             ImGui::Spacing();
@@ -3435,7 +3476,7 @@ int main()
         if (levelSelect)
         {
 
-            ImGui::Begin("LEVEL SELECT", &levelSelect, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
+            ImGui::Begin("LEVEL SELECT", &levelSelect, NULL);
 
             ImGui::Dummy(ImVec2(5.0f, 5.0f));
 

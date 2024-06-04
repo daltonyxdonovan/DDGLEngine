@@ -1,36 +1,3 @@
-// if (p1Colliding || p2Colliding)
-        // {
-        //     glm::vec3 movement = (cameraSpeed/2) * glm::normalize(target - position);
-        //     movement.y = 0;
-        //     position -= movement;
-        // }
-        // if (p3Colliding || p4Colliding)
-        // {
-        //     glm::vec3 movement = (cameraSpeed/2) * glm::normalize(target - position);
-        //     movement.y = 0;
-        //     position += movement;
-        // }
-        // if (p1Colliding || p3Colliding)
-        // {
-        //     glm::vec3 movement = (cameraSpeed/2) * glm::normalize(glm::cross(target - position, worldUp));
-        //     movement.y = 0;
-        //     position += movement;
-        // }
-        // if (p2Colliding || p4Colliding)
-        // {
-        //     glm::vec3 movement = (cameraSpeed/2) * glm::normalize(glm::cross(target - position, worldUp));
-        //     movement.y = 0;
-        //     position -= movement;
-        // }
-
-
-        // if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS )
-        // {
-        //     glm::vec3 movement = cameraSpeed * glm::normalize(worldUp);
-        //     position -= movement;
-        // }
-
-
 
 
 

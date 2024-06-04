@@ -12,10 +12,10 @@ class SoundManager
 {
   public:
     int masterVolume{50};
-    int musicVolume{10};
+    int musicVolume{0};
     int soundVolume{50};
     int masterVolumeBuffer{50};
-    int musicVolumeBuffer{10};
+    int musicVolumeBuffer{0};
     int soundVolumeBuffer{50};
     glm::vec3 playerPosition = glm::vec3(0);
     int maxDistance = 50;
