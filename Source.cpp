@@ -3388,7 +3388,8 @@ int main()
             ImGui::SliderInt("Music Volume", &soundManager.musicVolume, 0, 100, "%d");
             ImGui::SliderInt("Effect Volume", &soundManager.soundVolume, 0, 100, "%d");
 
-            ImVec2 windowPos = ImVec2((width - ImGui::GetWindowWidth()) / 2, ((height - ImGui::GetWindowHeight()) / 2));
+            ImVec2 windowPos =
+                ImVec2((mode->width - ImGui::GetWindowWidth()) / 2, ((mode->height - ImGui::GetWindowHeight()) / 2));
             ImGui::SetWindowPos(windowPos);
 
             ImGui::Spacing();
