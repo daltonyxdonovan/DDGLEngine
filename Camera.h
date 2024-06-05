@@ -4,6 +4,22 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
+struct ControllerConfig
+{
+    int axisMoveForward;
+    int axisMoveBackward;
+    int axisMoveLeft;
+    int axisMoveRight;
+    int axisLookHorizontal;
+    int axisLookVertical;
+    int buttonRun;
+    int buttonJump;
+    int buttonPause;
+    int buttonUnpause;
+    int buttonPlace;
+    int buttonDelete;
+};
+
 class Camera
 {
   public:
@@ -39,12 +55,45 @@ class Camera
     int toggleFlying = 0;
     bool heldFlyLastFrame = false;
     bool jumpNotPressedThisFrame = true;
+    int controllerCooldown = 0;
+    std::unordered_map<std::string, ControllerConfig> controllerConfigs;
+
+    ControllerConfig xboxConfig = {
+        1,  // axisMoveForward
+        1,  // axisMoveBackward
+        0,  // axisMoveLeft
+        0,  // axisMoveRight
+        2,  // axisLookHorizontal
+        3,  // axisLookVertical
+        13, // Left Thumbstick Press
+        0,  // South Button
+        7,  // Start
+        6,  // Select
+        4,  // Left Trigger
+        5   // Right Trigger
+    };
+
+    ControllerConfig switchConfig = {
+        1,  // axisMoveForward
+        1,  // axisMoveBackward
+        0,  // axisMoveLeft
+        0,  // axisMoveRight
+        2,  // axisLookHorizontal
+        3,  // axisLookVertical
+        13, // Left Thumbstick Press
+        0,  // South Button
+        7,  // Start
+        6,  // Select
+        4,  // Left Trigger
+        5   // Right Trigger
+    };
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
         : position(position), target(target), worldUp(up), movementSpeed(movementSpeed), rotationSpeed(rotationSpeed)
     {
-
+        controllerConfigs["Xbox One S"] = xboxConfig;
+        controllerConfigs["Nintendo Switch"] = switchConfig;
         glfwSetJoystickCallback([](int joystick, int event) {
             if (event == GLFW_CONNECTED)
             {
@@ -104,6 +153,8 @@ class Camera
     void Update(GLFWwindow *window, float dt, bool &isMouseActive, int energy, bool recharging, bool needsRecharging,
                 bool &placeSomething, bool &deleteSomething)
     {
+        if (controllerCooldown > 0)
+            controllerCooldown--;
         // if (dt > 0.016f)
         //     dt = 0.016f;
         if (isFlying)
@@ -156,6 +207,7 @@ class Camera
                 properControllerIndex = j;
                 break;
             }
+            std::cout << "Controller Found: " << name << std::endl << std::endl;
         }
 
         if (properControllerIndex != -1)
@@ -360,6 +412,70 @@ class Camera
                     // right click mouse
                 }
             }
+        }
+
+        if (properControllerIndex != -1)
+        {
+            if (buttons[0] == GLFW_PRESS)
+                std::cout << "0" << std::endl;
+            if (buttons[1] == GLFW_PRESS)
+                std::cout << "1" << std::endl;
+            if (buttons[2] == GLFW_PRESS)
+                std::cout << "2" << std::endl;
+            if (buttons[3] == GLFW_PRESS)
+                std::cout << "3" << std::endl;
+            if (buttons[4] == GLFW_PRESS)
+                std::cout << "4" << std::endl;
+            if (buttons[5] == GLFW_PRESS)
+                std::cout << "5" << std::endl;
+            if (buttons[6] == GLFW_PRESS)
+                std::cout << "6" << std::endl;
+            if (buttons[7] == GLFW_PRESS)
+                std::cout << "7" << std::endl;
+            if (buttons[8] == GLFW_PRESS)
+                std::cout << "8" << std::endl;
+            if (buttons[9] == GLFW_PRESS)
+                std::cout << "9" << std::endl;
+            if (buttons[10] == GLFW_PRESS)
+                std::cout << "10" << std::endl;
+            if (buttons[11] == GLFW_PRESS)
+                std::cout << "11" << std::endl;
+            if (buttons[12] == GLFW_PRESS)
+                std::cout << "12" << std::endl;
+            if (buttons[13] == GLFW_PRESS)
+                std::cout << "13" << std::endl;
+            if (buttons[14] == GLFW_PRESS)
+                std::cout << "14" << std::endl;
+            if (buttons[15] == GLFW_PRESS)
+                std::cout << "15" << std::endl;
+            if (buttons[16] == GLFW_PRESS)
+                std::cout << "16" << std::endl;
+            if (buttons[17] == GLFW_PRESS)
+                std::cout << "17" << std::endl;
+            if (buttons[18] == GLFW_PRESS)
+                std::cout << "18" << std::endl;
+
+            if (axes[0] == 4)
+                std::cout << "axes 4" << std::endl;
+            if (axes[0] == 2)
+                std::cout << "axes 2" << std::endl;
+            if (axes[0] == 1)
+                std::cout << "axes 1" << std::endl;
+            if (axes[0] == 8)
+                std::cout << "axes 8" << std::endl;
+
+            if (thumbstickAxes[0] > 0.5)
+                std::cout << "Thumbstick axes 0" << std::endl;
+            if (thumbstickAxes[1] > 0.5)
+                std::cout << "Thumbstick axes 1" << std::endl;
+            if (thumbstickAxes[2] > 0.5)
+                std::cout << "Thumbstick axes 2" << std::endl;
+            if (thumbstickAxes[3] > 0.5)
+                std::cout << "Thumbstick axes 3" << std::endl;
+            if (thumbstickAxes[4] > 0.5)
+                std::cout << "Thumbstick axes 4" << std::endl;
+            if (thumbstickAxes[5] > 0.5)
+                std::cout << "Thumbstick axes 5" << std::endl;
         }
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
