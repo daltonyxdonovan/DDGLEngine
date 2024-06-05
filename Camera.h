@@ -178,12 +178,18 @@ class Camera
             }
         }
 
-        // if leftShift is pressed, run
-        if ((!needsRecharging || isFlying) &&
-            (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || (buttons[13] == GLFW_PRESS)))
+        if (properControllerIndex != -1)
+        {
+            if ((!needsRecharging || isFlying) && ((buttons[13] == GLFW_PRESS)))
+            {
+                isRunning = true;
+            }
+        }
+        else if ((!needsRecharging || isFlying) && (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS))
         {
             isRunning = true;
         }
+
         if (isFlying && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         {
             position.y -= .1f;
