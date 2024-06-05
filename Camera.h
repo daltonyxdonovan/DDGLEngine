@@ -51,7 +51,7 @@ class Camera
     glm::vec3 target;
     bool isFlying = false;
     float fov = 75;
-    float heighte = 2;
+    float heighte = 1;
     int numOfFeetOnGround = 0;
     int toggleFlying = 0;
     bool heldFlyLastFrame = false;
@@ -75,28 +75,11 @@ class Camera
         5   // Right Trigger
     };
 
-    // "Nintendo Switch Combined Joy-Cons"
-    ControllerConfig switchConfig = {
-        1,  // axisMoveForward
-        1,  // axisMoveBackward
-        0,  // axisMoveLeft
-        0,  // axisMoveRight
-        2,  // axisLookHorizontal
-        3,  // axisLookVertical
-        13, // Left Thumbstick Press
-        0,  // South Button
-        7,  // Start
-        6,  // Select
-        4,  // Left Trigger
-        5   // Right Trigger
-    };
-
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
         : position(position), target(target), worldUp(up), movementSpeed(movementSpeed), rotationSpeed(rotationSpeed)
     {
         controllerConfigs["Xbox One S"] = xboxConfig;
-        controllerConfigs["Nintendo Switch"] = switchConfig;
         glfwSetJoystickCallback([](int joystick, int event) {
             if (event == GLFW_CONNECTED)
             {
@@ -206,6 +189,11 @@ class Camera
                 break;
             }
             else if (strstr(name, "Controller") != nullptr)
+            {
+                properControllerIndex = j;
+                break;
+            }
+            else if (strstr(name, "Nintendo Switch Combined Joy-Cons") != nullptr)
             {
                 properControllerIndex = j;
                 break;

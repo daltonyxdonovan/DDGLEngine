@@ -1521,9 +1521,11 @@ void HandleImpactSound(Cube &voxel, SoundManager &soundManager)
 
 int main()
 {
+
+#pragma region INITIALIZATION
+
+#pragma region SOUNDSETUP
     SoundManager soundManager;
-    Image image(glm::vec3(0), glm::vec3(1));
-    image.SetCornerPositions(0, 0);
 
     sf::SoundBuffer blipSelectBuffer;
     if (!blipSelectBuffer.loadFromFile("res/sounds/blipSelect.wav"))
@@ -1548,8 +1550,7 @@ int main()
     }
     sf::Sound slideSound;
     slideSound.setBuffer(stoneSlideBuffer);
-
-#pragma region INITIALIZATION
+#pragma endregion SOUNDSETUP
 
 #pragma region MAPSETUP
 
@@ -1576,7 +1577,7 @@ int main()
         std::cout << "Map built successfully! Constructing voxels from data..." << std::endl;
 #pragma endregion MAPSETUP
 
-#pragma region GLINIT
+#pragma region GL-PRE-INIT
     const unsigned int AMOUNT_OF_INDICES = 36;
     const unsigned int AMOUNT_OF_INDICES2 = 6;
     const unsigned int FULL_STRIDE = STRIDE * AMOUNT_OF_INDICES * VertexBufferElement::GetSizeOfType(GL_FLOAT);
@@ -1703,7 +1704,7 @@ int main()
     if (PRINTLOG)
         std::cout << "Finally binding VAO..." << std::endl;
 
-#pragma endregion GLINIT
+#pragma endregion GL - PRE - INIT
 
 #pragma region LAYOUT
 
@@ -1736,7 +1737,7 @@ int main()
 
 #pragma endregion LAYOUT
 
-#pragma region GLINIT2
+#pragma region GL-POST-INIT
 
     glm::mat4 proj = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 5000.0f);
     glm::mat4 view = glm::lookAt(camera.position, camera.target, glm::vec3(0, 1, 0));
@@ -1836,12 +1837,13 @@ int main()
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
 
-#pragma endregion GLINIT2
+#pragma endregion GL - POST - INIT
 
 #pragma endregion INITIALIZATION
 
     while (!glfwWindowShouldClose(window))
     {
+#pragma region LOOP-REFRESH
         paused = mouseControl;
         soundManager.Update(camera.position, camera.getViewDirection());
         va.Bind();
@@ -1904,6 +1906,8 @@ int main()
                     PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2,
                     positionsUI);
         }
+
+#pragma endregion LOOP - REFRESH
 
         if (PRINTLOOPLOG)
             std::cout << "doing matrix transformations..." << std::endl;
