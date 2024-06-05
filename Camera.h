@@ -57,6 +57,7 @@ class Camera
     bool heldFlyLastFrame = false;
     bool jumpNotPressedThisFrame = true;
     int controllerCooldown = 0;
+    bool printedName = false;
     std::unordered_map<std::string, ControllerConfig> controllerConfigs;
 
     ControllerConfig xboxConfig = {
@@ -74,6 +75,7 @@ class Camera
         5   // Right Trigger
     };
 
+    // "Nintendo Switch Combined Joy-Cons"
     ControllerConfig switchConfig = {
         1,  // axisMoveForward
         1,  // axisMoveBackward
@@ -208,7 +210,11 @@ class Camera
                 properControllerIndex = j;
                 break;
             }
-            std::cout << "Controller Found: " << name << std::endl << std::endl;
+            if (!printedName)
+            {
+                std::cout << "Controller Found: " << name << std::endl << std::endl;
+                printedName = true;
+            }
         }
 
         if (properControllerIndex != -1)
