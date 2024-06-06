@@ -217,7 +217,7 @@ class Cube
         {
             // Front face
             -1,  1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, chosen,
-            1,  1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
+             1,  1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, chosen,
              1, -1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, chosen,
             -1, -1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, chosen,
 
@@ -354,10 +354,10 @@ class Image
         this->cornerPositions = 
         {
             // Front face
-            -1,  1,  1, 0.0f, 0.0f, textureID,
-             1,  1,  1, 0.1f, 0.0f, textureID,
-             1, -1,  1, 0.1f, 0.1f, textureID,
-            -1, -1,  1, 0.0f, 0.1f, textureID
+            -1,  1,  1, 0.0f, 0.0f, textureID,  0,  0,  1, invisible,
+             1,  1,  1, 0.1f, 0.0f, textureID,  0,  0,  1, invisible,
+             1, -1,  1, 0.1f, 0.1f, textureID,  0,  0,  1, invisible,
+            -1, -1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, invisible,
         };
         // clang-format on
     }
@@ -662,6 +662,26 @@ void ConcatenateArrays(float *&positions, size_t positionsSize, float *positions
     positions = newPositions;
 }
 
+void ConcatenateArrays(unsigned int *&positions, size_t positionsSize, unsigned int *positionsUI,
+                       size_t positionsUISize)
+{
+    // Step 1: Allocate new array
+    size_t newSize = positionsSize + positionsUISize;
+    unsigned int *newPositions = new unsigned int[newSize];
+
+    // Step 2: Copy elements from positions to newPositions
+    std::copy(positions, positions + positionsSize, newPositions);
+
+    // Step 3: Copy elements from positionsUI to newPositions
+    std::copy(positionsUI, positionsUI + positionsUISize, newPositions + positionsSize);
+
+    // Step 4: Delete the old positions array
+    delete[] positions;
+
+    // Step 5: Update positions to point to the new array
+    positions = newPositions;
+}
+
 void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
              float *&positions, VertexBufferLayout &layout, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib,
              unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
@@ -673,11 +693,18 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         std::cout << "refreshing map..." << std::endl;
     needsRefresh = false;
     indicesCount = voxels.size() * AMOUNT_OF_INDICES;
+    indicesCount2 = images.size() * AMOUNT_OF_INDICES;
 
     if (indicesAfter != nullptr)
     {
         delete[] indicesAfter;
         indicesAfter = nullptr;
+    }
+
+    if (indicesAfter2 != nullptr)
+    {
+        delete[] indicesAfter2;
+        indicesAfter2 = nullptr;
     }
 
     indicesAfter = new unsigned int[indicesCount];
@@ -689,6 +716,17 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
             indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
         }
         voxels[i].index = i;
+    }
+
+    indicesAfter2 = new unsigned int[indicesCount2];
+
+    for (int i = 0; i < voxels.size(); i++)
+    {
+        for (int j = 0; j < voxels[i].indices.size(); j++)
+        {
+            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = images[i].indices[j] + i * AMOUNT_OF_INDICES2;
+        }
+        images[i].index = i + voxels.size();
     }
 
     std::vector<float> scales;
@@ -924,14 +962,89 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         }
     }
 
-    /*ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
-                      (images.size() * 6U * AMOUNT_OF_INDICES2));*/
+    //////////////////////////
+
+    if (positionsUI != nullptr)
+    {
+        delete[] positionsUI;
+        positionsUI = nullptr;
+    }
+    positionsUI = new float[(images.size() * STRIDE * AMOUNT_OF_INDICES2)];
+
+    for (int i = 0; i < images.size(); i++)
+    {
+
+        for (int j = 0; j < images[i].cornerPositions.size(); j++)
+        {
+            positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].cornerPositions[j];
+            if (j == 0)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 1)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 2)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+
+            if (j == 10)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 11)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 12)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+
+            if (j == 20)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 21)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 22)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+
+            if (j == 30)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 31)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+            if (j == 32)
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
+
+            if (j % STRIDE == 0) // x
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.x;
+            }
+            else if (j % STRIDE == 1) // y
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.y;
+            }
+            else if (j % STRIDE == 2) // z
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.z;
+            }
+            else if (j % STRIDE == 5) // textureID
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].textureIndex;
+            }
+            else if (j % STRIDE == 9) // invisible
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].invisible;
+            }
+        }
+    }
+
+    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * STRIDE * AMOUNT_OF_INDICES2));
+
+    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
+                      (images.size() * AMOUNT_OF_INDICES));
+
+    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
+    indicesCount += indicesCount2;
 
     va.Unbind();
     vb.Unbind();
     ib.Unbind();
 
-    vb.UpdateBuffer(positions, (voxels.size() * FULL_STRIDE));
+    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
+    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
+
+    vb.UpdateBuffer(positions, sizeCubes + sizeImages);
     va.AddBuffer(vb, layout);
     ib.UpdateBuffer(indicesAfter, indicesCount);
 
@@ -1040,7 +1153,7 @@ void SetRotsRadians(glm::vec3 &rots, glm::vec3 &rotsRadians, Cube *&cubeLookingA
 
 Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
 const unsigned int STRIDE = 10;
-const unsigned int STRIDE2 = 6;
+const unsigned int STRIDE2 = 10;
 int cooldownForBreak = 0;
 bool pinned = false;
 double lastFrameTime = 0.0;
@@ -1559,6 +1672,9 @@ int main()
     std::vector<Cube> voxels;
     std::vector<Object> objects;
     std::vector<Image> images;
+    Image img(glm::vec3(0), glm::vec3(1));
+    img.SetCornerPositions(43, 0);
+    images.push_back(img);
     voxels.push_back(cubeDummy);
 
     voxels = LoadCubesFromFile("res/maps/mapVoxels" + std::to_string(currentLevel) + ".txt");
@@ -1578,10 +1694,10 @@ int main()
 #pragma endregion MAPSETUP
 
 #pragma region GL-PRE-INIT
-    const unsigned int AMOUNT_OF_INDICES = 36;
-    const unsigned int AMOUNT_OF_INDICES2 = 6;
+    unsigned int AMOUNT_OF_INDICES = 36;
+    unsigned int AMOUNT_OF_INDICES2 = 6;
     const unsigned int FULL_STRIDE = STRIDE * AMOUNT_OF_INDICES * VertexBufferElement::GetSizeOfType(GL_FLOAT);
-    const unsigned int FULL_STRIDE2 = STRIDE2 * AMOUNT_OF_INDICES2 * VertexBufferElement::GetSizeOfType(GL_FLOAT);
+    const unsigned int FULL_STRIDE2 = STRIDE * AMOUNT_OF_INDICES2 * VertexBufferElement::GetSizeOfType(GL_FLOAT);
     int indicesCount = voxels.size() * AMOUNT_OF_INDICES;
     int indicesCount2 = images.size() * AMOUNT_OF_INDICES2;
     unsigned int *indicesAfter = new unsigned int[indicesCount];
@@ -1653,8 +1769,14 @@ int main()
         }
     }
 
-    /* ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
-                       (images.size() * STRIDE2 * AMOUNT_OF_INDICES2));*/
+    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * STRIDE2 * AMOUNT_OF_INDICES2));
+
+    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
+                      (images.size() * AMOUNT_OF_INDICES));
+
+    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
+    indicesCount += indicesCount2;
 
     if (PRINTLOG)
         std::cout << "Initialising GLFW and GL3W..." << std::endl;
@@ -1716,9 +1838,11 @@ int main()
     if (PRINTLOG)
         std::cout << "Finally creating vertex buffer from info..." << std::endl;
 
-    unsigned int sizeHere = (voxels.size() * FULL_STRIDE);
+    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
+    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
+    unsigned int fullSize = sizeCubes + sizeImages;
 
-    VertexBuffer vb(positions, sizeHere);
+    VertexBuffer vb(positions, fullSize);
     if (PRINTLOG)
         std::cout << "Finally creating vertex layout from info..." << std::endl;
     VertexBufferLayout layout;
@@ -1733,7 +1857,7 @@ int main()
     layout.Push(GL_FLOAT, 1); // cubeLookingAt
     va.AddBuffer(vb, layout);
 
-    IndexBuffer ib(indicesAfter, indicesCount);
+    IndexBuffer ib(indicesAfter, 42U);
 
 #pragma endregion LAYOUT
 
@@ -1902,9 +2026,9 @@ int main()
 
         if (needsRefresh)
         {
-            Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
+            /*Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
                     PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2,
-                    positionsUI);
+                    positionsUI);*/
         }
 
 #pragma endregion LOOP - REFRESH

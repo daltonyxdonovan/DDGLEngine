@@ -75,6 +75,21 @@ class Camera
         5   // Right Trigger
     };
 
+    ControllerConfig switchConfig = {
+        1,  // axisMoveForward
+        1,  // axisMoveBackward
+        0,  // axisMoveLeft
+        0,  // axisMoveRight
+        2,  // axisLookHorizontal    (thumbstick axes)
+        3,  // axisLookVertical      (thumbstick axes)
+        13, // Left Thumbstick Press
+        0,  // South Button
+        7,  // Start
+        6,  // Select
+        4,  // Left Trigger
+        5   // Right Trigger
+    };
+
     Camera(glm::vec3 position = glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3 target = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float movementSpeed = 5.0f, float rotationSpeed = 1.0f)
         : position(position), target(target), worldUp(up), movementSpeed(movementSpeed), rotationSpeed(rotationSpeed)
