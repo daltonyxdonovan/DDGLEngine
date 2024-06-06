@@ -196,45 +196,45 @@ void VertexBuffer::UpdateScale(int index, glm::vec3 positionOfCube, float xScale
     float updatedData[3];
 
     updatedData[0] = -1 * xScale + positionOfCube.x;
-    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
-    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
-    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 2);
 
     updatedData[0] = -1 * xScale + positionOfCube.x;
-    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 3);
-
-    updatedData[0] = -1 * xScale + positionOfCube.x;
+    //
+    updatedData[0] = 1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 4);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
-    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 5);
 
-    updatedData[0] = 1 * xScale + positionOfCube.x;
+    updatedData[0] = -1 * xScale + positionOfCube.x;
     updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 6);
 
     updatedData[0] = -1 * xScale + positionOfCube.x;
-    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 7);
-
+    //
     updatedData[0] = -1 * xScale + positionOfCube.x;
     updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
@@ -254,35 +254,35 @@ void VertexBuffer::UpdateScale(int index, glm::vec3 positionOfCube, float xScale
     updatedData[1] = 1 * yScale + positionOfCube.y;
     updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 11);
-
+    //
     updatedData[0] = -1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
-    updatedData[2] = -1 * zScale + positionOfCube.z;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 12);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
-    updatedData[2] = -1 * zScale + positionOfCube.z;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 13);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
-    updatedData[2] = 1 * zScale + positionOfCube.z;
+    updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 14);
 
     updatedData[0] = -1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
-    updatedData[2] = 1 * zScale + positionOfCube.z;
+    updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 15);
-
+    //
     updatedData[0] = 1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 16);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
-    updatedData[1] = 1 * yScale + positionOfCube.y;
-    updatedData[2] = -1 * zScale + positionOfCube.z;
+    updatedData[1] = -1 * yScale + positionOfCube.y;
+    updatedData[2] = 1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 17);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
@@ -291,10 +291,10 @@ void VertexBuffer::UpdateScale(int index, glm::vec3 positionOfCube, float xScale
     UpdateBuffer(updatedData, 3, baseOffset + stride * 18);
 
     updatedData[0] = 1 * xScale + positionOfCube.x;
-    updatedData[1] = -1 * yScale + positionOfCube.y;
-    updatedData[2] = 1 * zScale + positionOfCube.z;
+    updatedData[1] = 1 * yScale + positionOfCube.y;
+    updatedData[2] = -1 * zScale + positionOfCube.z;
     UpdateBuffer(updatedData, 3, baseOffset + stride * 19);
-
+    //
     updatedData[0] = -1 * xScale + positionOfCube.x;
     updatedData[1] = -1 * yScale + positionOfCube.y;
     updatedData[2] = -1 * zScale + positionOfCube.z;

@@ -240,10 +240,10 @@ class Cube
             -1, -1,  -1, 0.0f, 0.1f, textureID,  0, -1,  0, chosen,
 
             // Right face
-             1, -1, -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
-             1,  -1, 1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
-             1,  1,  1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
-             1, 1,  -1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
+             1, -1, -1, 0.1f, 0.0f, textureID,  1,  0,  0, chosen,
+             1,  -1, 1, 0.1f, 0.1f, textureID,  1,  0,  0, chosen,
+             1,  1,  1, 0.0f, 0.1f, textureID,  1,  0,  0, chosen,
+             1, 1,  -1, 0.0f, 0.0f, textureID,  1,  0,  0, chosen,
 
             // Left face
             -1, -1, -1, 0.0f, 0.0f, textureID, -1,  0,  0, chosen,
@@ -685,26 +685,18 @@ void ConcatenateArrays(unsigned int *&positions, size_t positionsSize, unsigned 
 void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
              float *&positions, VertexBufferLayout &layout, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib,
              unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
-             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2,
-             float *&positionsUI)
+             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2)
 {
     // addNotification("Refreshing map", 10);
     if (PRINTLOOPLOG)
         std::cout << "refreshing map..." << std::endl;
     needsRefresh = false;
     indicesCount = voxels.size() * AMOUNT_OF_INDICES;
-    indicesCount2 = images.size() * AMOUNT_OF_INDICES;
 
     if (indicesAfter != nullptr)
     {
         delete[] indicesAfter;
         indicesAfter = nullptr;
-    }
-
-    if (indicesAfter2 != nullptr)
-    {
-        delete[] indicesAfter2;
-        indicesAfter2 = nullptr;
     }
 
     indicesAfter = new unsigned int[indicesCount];
@@ -716,17 +708,6 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
             indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
         }
         voxels[i].index = i;
-    }
-
-    indicesAfter2 = new unsigned int[indicesCount2];
-
-    for (int i = 0; i < voxels.size(); i++)
-    {
-        for (int j = 0; j < voxels[i].indices.size(); j++)
-        {
-            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = images[i].indices[j] + i * AMOUNT_OF_INDICES2;
-        }
-        images[i].index = i + voxels.size();
     }
 
     std::vector<float> scales;
@@ -962,89 +943,14 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         }
     }
 
-    //////////////////////////
-
-    if (positionsUI != nullptr)
-    {
-        delete[] positionsUI;
-        positionsUI = nullptr;
-    }
-    positionsUI = new float[(images.size() * STRIDE * AMOUNT_OF_INDICES2)];
-
-    for (int i = 0; i < images.size(); i++)
-    {
-
-        for (int j = 0; j < images[i].cornerPositions.size(); j++)
-        {
-            positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].cornerPositions[j];
-            if (j == 0)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 1)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 2)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-
-            if (j == 10)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 11)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 12)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-
-            if (j == 20)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 21)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 22)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-
-            if (j == 30)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 31)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-            if (j == 32)
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j];
-
-            if (j % STRIDE == 0) // x
-            {
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.x;
-            }
-            else if (j % STRIDE == 1) // y
-            {
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.y;
-            }
-            else if (j % STRIDE == 2) // z
-            {
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.z;
-            }
-            else if (j % STRIDE == 5) // textureID
-            {
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].textureIndex;
-            }
-            else if (j % STRIDE == 9) // invisible
-            {
-                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].invisible;
-            }
-        }
-    }
-
-    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
-                      (images.size() * STRIDE * AMOUNT_OF_INDICES2));
-
-    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
-                      (images.size() * AMOUNT_OF_INDICES));
-
-    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
-    indicesCount += indicesCount2;
+    /*ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * 6U * AMOUNT_OF_INDICES2));*/
 
     va.Unbind();
     vb.Unbind();
     ib.Unbind();
 
-    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
-    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
-
-    vb.UpdateBuffer(positions, sizeCubes + sizeImages);
+    vb.UpdateBuffer(positions, (voxels.size() * FULL_STRIDE));
     va.AddBuffer(vb, layout);
     ib.UpdateBuffer(indicesAfter, indicesCount);
 
@@ -1053,6 +959,12 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
     ib.Bind();
     if (PRINTLOOPLOG)
         std::cout << "done refreshing map!" << std::endl;
+
+    for (int i = 0; i < voxels.size(); i++)
+    {
+        voxels[i].collider.setSize(voxels[i].scale);
+        voxels[i].collider.setPosition(voxels[i].position);
+    }
 }
 
 void SaveObject(std::string name, std::vector<Cube> &voxels)
@@ -1153,7 +1065,6 @@ void SetRotsRadians(glm::vec3 &rots, glm::vec3 &rotsRadians, Cube *&cubeLookingA
 
 Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
 const unsigned int STRIDE = 10;
-const unsigned int STRIDE2 = 10;
 int cooldownForBreak = 0;
 bool pinned = false;
 double lastFrameTime = 0.0;
@@ -1702,6 +1613,23 @@ int main()
     int indicesCount2 = images.size() * AMOUNT_OF_INDICES2;
     unsigned int *indicesAfter = new unsigned int[indicesCount];
     unsigned int *indicesAfter2 = new unsigned int[indicesCount2];
+    float *positions = new float[(voxels.size() * STRIDE * AMOUNT_OF_INDICES)];
+
+    Renderer renderer;
+    Cube *cubeLookingAt = nullptr;
+    float dt = 0.0f;
+    float lastFrame = 0.0f;
+    float currentFrame;
+    bool paused = false;
+    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
+    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
+    unsigned int fullSize = sizeCubes + sizeImages;
+    glm::mat4 proj = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 5000.0f);
+    glm::mat4 view = glm::lookAt(camera.position, camera.target, glm::vec3(0, 1, 0));
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 mvp = proj * view * model;
+
+    // set the indices up for the cubes
     for (int i = 0; i < voxels.size(); i++)
     {
         for (int j = 0; j < voxels[i].indices.size(); j++)
@@ -1709,77 +1637,15 @@ int main()
             indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
         }
     }
-    for (int i = 0; i < images.size(); i++)
-    {
-        for (int j = 0; j < images[i].indices.size(); j++)
-        {
-            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = images[i].indices[j] + i * AMOUNT_OF_INDICES2;
-        }
-    }
 
-    if (PRINTLOG)
-        std::cout << "Math for buffers done, creating vectors!" << std::endl;
-
-    // this is the size of each tri's info (6, 3 for position, 2 for texture coordinates, 1 textureID) * 36 (number
-    // of indices in our cube)
-    float *positions = new float[(voxels.size() * STRIDE * AMOUNT_OF_INDICES)];
-    float *positionsUI = new float[(images.size() * STRIDE2 * AMOUNT_OF_INDICES2)];
-
+    // set the initial cornerPositions vector up for the cubes
     for (int i = 0; i < voxels.size(); i++)
     {
-        voxels[i].collider.setSize(voxels[i].scale);
-        voxels[i].collider.setPosition(voxels[i].position);
         for (int j = 0; j < voxels[i].cornerPositions.size(); j++)
         {
             positions[i * STRIDE * AMOUNT_OF_INDICES + j] = voxels[i].cornerPositions[j];
-
-            if (j % STRIDE == 0)
-            {
-                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.x;
-            }
-            else if (j % STRIDE == 1)
-            {
-                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.y;
-            }
-            else if (j % STRIDE == 2)
-            {
-                positions[i * STRIDE * AMOUNT_OF_INDICES + j] += voxels[i].position.z;
-            }
         }
     }
-
-    for (int i = 0; i < images.size(); i++)
-    {
-        for (int j = 0; j < images[i].cornerPositions.size(); j++)
-        {
-            positionsUI[i * STRIDE2 * AMOUNT_OF_INDICES2 + j] = images[i].cornerPositions[j];
-
-            if (j % STRIDE2 == 0)
-            {
-                positionsUI[i * STRIDE2 * AMOUNT_OF_INDICES2 + j] += images[i].position.x;
-            }
-            else if (j % STRIDE2 == 1)
-            {
-                positionsUI[i * STRIDE2 * AMOUNT_OF_INDICES2 + j] += images[i].position.y;
-            }
-            else if (j % STRIDE2 == 2)
-            {
-                positionsUI[i * STRIDE2 * AMOUNT_OF_INDICES2 + j] += images[i].position.z;
-            }
-        }
-    }
-
-    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
-                      (images.size() * STRIDE2 * AMOUNT_OF_INDICES2));
-
-    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
-                      (images.size() * AMOUNT_OF_INDICES));
-
-    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
-    indicesCount += indicesCount2;
-
-    if (PRINTLOG)
-        std::cout << "Initialising GLFW and GL3W..." << std::endl;
 
     if (!glfwInit())
     {
@@ -1808,23 +1674,15 @@ int main()
     {
         std::cerr << "FAILED to initialize GLEW\n";
     }
-
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
-
-    if (PRINTLOG)
-        std::cout << "Set depth-testing to true\nSet blending to true" << std::endl;
-
-    if (PRINTLOG)
-        std::cout << "GLFW and GL3W initialised! Setting up VBO/VAO!" << std::endl;
-
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
     unsigned int vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-
-    if (PRINTLOG)
-        std::cout << "Finally binding VAO..." << std::endl;
 
 #pragma endregion GL - PRE - INIT
 
@@ -1834,21 +1692,12 @@ int main()
     for (int i = 0; i < objects.size(); i++)
         num += objects[i].voxels.size();
 
+    Shader shaderUI("res/shaders/UI.shader");
+    Shader shader("res/shaders/Basic.shader");
+
     VertexArray va(1);
-    if (PRINTLOG)
-        std::cout << "Finally creating vertex buffer from info..." << std::endl;
-
-    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
-    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
-    unsigned int fullSize = sizeCubes + sizeImages;
-
-    VertexBuffer vb(positions, fullSize);
-    if (PRINTLOG)
-        std::cout << "Finally creating vertex layout from info..." << std::endl;
+    VertexBuffer vb(positions, sizeCubes);
     VertexBufferLayout layout;
-
-    if (PRINTLOG)
-        std::cout << "VBO/VAO set up! creating index buffer!" << std::endl;
 
     layout.Push(GL_FLOAT, 3); // position
     layout.Push(GL_FLOAT, 2); // texture coordinates
@@ -1857,28 +1706,18 @@ int main()
     layout.Push(GL_FLOAT, 1); // cubeLookingAt
     va.AddBuffer(vb, layout);
 
-    IndexBuffer ib(indicesAfter, 42U);
+    IndexBuffer ib(indicesAfter, 36U);
+
+    Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
+            PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2);
 
 #pragma endregion LAYOUT
 
 #pragma region GL-POST-INIT
 
-    glm::mat4 proj = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 5000.0f);
-    glm::mat4 view = glm::lookAt(camera.position, camera.target, glm::vec3(0, 1, 0));
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 mvp = proj * view * model;
-
-    if (PRINTLOG)
-        std::cout << "Voxels generated! Creating shaders..." << std::endl;
-    Shader shaderUI("res/shaders/UI.shader");
-
-    Shader shader("res/shaders/Basic.shader");
-
     shader.Bind();
     shader.SetUniformMat4f("u_MVP", mvp);
     shaderUI.SetUniformMat4f("u_MVP", mvp);
-    if (PRINTLOG)
-        std::cout << "Bound shaders successfully! Binding textures to GPU...\n";
 
     Texture u_TextureAtlas("res/textures/atlas.png");
     Texture u_Heart0("res/textures/heart0.png");
@@ -1919,24 +1758,8 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    if (PRINTLOG)
-        std::cout << "Textures bound! Setting texture uniforms..." << std::endl;
-
     shader.SetUniform1i("u_TextureAtlas", 0);
     shaderUI.SetUniform1f("u_Heart0", 1);
-
-    va.Unbind();
-    vb.Unbind();
-    ib.Unbind();
-    shader.Unbind();
-
-    if (PRINTLOG)
-        std::cout << "Texture uniforms created! Creating RENDERER..." << std::endl;
-
-    Renderer renderer;
-
-    if (PRINTLOG)
-        std::cout << "RENDERER created! Initializing IMGUI..." << std::endl;
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -1945,26 +1768,12 @@ int main()
     ImGuiIO &io = ImGui::GetIO();
     io.DisplaySize.x = static_cast<float>(display_w);
     io.DisplaySize.y = static_cast<float>(display_h);
-
-    float dt = 0.0f;
-    float lastFrame = 0.0f;
-    float currentFrame;
-    bool paused = false;
     shader.Bind();
-
-    if (PRINTLOG)
-        std::cout << "SETUP complete!" << std::endl;
-
-    Cube *cubeLookingAt = nullptr;
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
 
 #pragma endregion GL - POST - INIT
 
 #pragma endregion INITIALIZATION
-
+    needsRefresh = true;
     while (!glfwWindowShouldClose(window))
     {
 #pragma region LOOP-REFRESH
@@ -2015,7 +1824,7 @@ int main()
         lastFrameTime = currentTime;        // Update lastFrameTime to the current time
 
         float distToCube = 99999999;
-        needsRefresh = true;
+
         if (PRINTLOOPLOG)
             std::cout << "starting rendering..." << std::endl;
 
@@ -2026,9 +1835,9 @@ int main()
 
         if (needsRefresh)
         {
-            /*Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
-                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2,
-                    positionsUI);*/
+            Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
+                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2);
+            needsRefresh = false;
         }
 
 #pragma endregion LOOP - REFRESH
@@ -2083,7 +1892,7 @@ int main()
             std::cout << "updating camera" << std::endl;
 
         camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging, rightClicked, leftClicked);
-        camera.collider.setPosition(camera.position);
+        camera.collider.setPosition(camera.position - (camera.heighte / 3));
         float val = camera.heighte;
         glm::vec3 val2(val / 4, val * 2, val / 4);
         camera.collider.setSize(val2);
@@ -2136,6 +1945,8 @@ int main()
 
             if (!camera.isFlying && voxels[i].door)
             {
+                vb.UpdateScale(voxels[i].index, voxels[i].position, voxels[i].scale.x, voxels[i].scale.y,
+                               voxels[i].scale.z, STRIDE);
                 HandleImpactSound(voxels[i], soundManager);
                 if (voxels[i].requiresRedKey)
                 {
@@ -3651,6 +3462,9 @@ int main()
                 paused = false;
                 levelSelect = false;
                 mouseControl = false;
+                camera.position = camera.lastPosition;
+                camera.yVelocity = 0;
+                camera.velocity = glm::vec3(0);
             }
 
             ImGui::End();
