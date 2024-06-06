@@ -70,7 +70,7 @@ int currentLevel = 0;
 int maxLevelAllowed = 9;
 bool showDebugInfo = true;
 int showDebugCooldown = 0;
-float stepHeight = 3.f;
+float stepHeight = 0.f;
 bool leftClicked = false;
 bool rightClicked = false;
 
@@ -687,7 +687,7 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
              unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
              unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2)
 {
-    // addNotification("Refreshing map", 10);
+    addNotification("Refreshing scene...", 10);
     if (PRINTLOOPLOG)
         std::cout << "refreshing map..." << std::endl;
     needsRefresh = false;
@@ -1894,7 +1894,7 @@ int main()
         camera.Update(window, dt, mouseControl, energy, recharging, needsRecharging, rightClicked, leftClicked);
         camera.collider.setPosition(camera.position - (camera.heighte / 3));
         float val = camera.heighte;
-        glm::vec3 val2(val / 4, val * 2, val / 4);
+        glm::vec3 val2(1, val, 1);
         camera.collider.setSize(val2);
 
         if (PRINTLOOPLOG)
