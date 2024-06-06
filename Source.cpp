@@ -73,6 +73,14 @@ int showDebugCooldown = 0;
 float stepHeight = 0.f;
 bool leftClicked = false;
 bool rightClicked = false;
+int health = 40;
+int maxHealth = 40;
+int healthCooldown = 0;
+int energyCooldown = 0;
+int energy = 10;
+int maxEnergy = 10;
+bool recharging = false;
+bool needsRecharging = false;
 
 std::vector<std::string> inventory = {
     "Red Key",
@@ -332,12 +340,9 @@ class Image
     glm::vec3 scale;
     std::vector<glm::vec3> vertices;
     int textureIndex = 0;
-    std::vector<glm::vec3> verticesAfterTransformation = {};
-    CubeCollider collider;
     int index = 0;
     bool invisible = false;
     std::vector<float> cornerPositions;
-    Texture texture;
     std::vector<unsigned int> indices = {
         0, 1, 2, 2, 3, 0, // front face
     };
@@ -360,10 +365,6 @@ class Image
             -1, -1,  1, 0.0f, 0.1f, textureID,  0,  0,  1, invisible,
         };
         // clang-format on
-    }
-
-    void Update(glm::vec3 playerPosition)
-    {
     }
 };
 
@@ -685,30 +686,53 @@ void ConcatenateArrays(unsigned int *&positions, size_t positionsSize, unsigned 
 void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_OF_INDICES, unsigned int *&indicesAfter,
              float *&positions, VertexBufferLayout &layout, VertexArray &va, VertexBuffer &vb, IndexBuffer &ib,
              unsigned int FULL_STRIDE, bool PRINTLOOPLOG, unsigned int STRIDE, unsigned int AMOUNT_OF_INDICES2,
-             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2)
+             unsigned int *&indicesAfter2, std::vector<Image> &images, int &indicesCount2, unsigned int FULL_STRIDE2,
+             float *&positionsUI)
 {
     addNotification("Refreshing scene...", 10);
     if (PRINTLOOPLOG)
         std::cout << "refreshing map..." << std::endl;
     needsRefresh = false;
     indicesCount = voxels.size() * AMOUNT_OF_INDICES;
+    indicesCount = images.size() * AMOUNT_OF_INDICES2;
+    unsigned int sizeCubes = (voxels.size() * FULL_STRIDE);
+    unsigned int sizeImages = (images.size() * FULL_STRIDE2);
+    unsigned int fullSize = sizeCubes + sizeImages;
 
     if (indicesAfter != nullptr)
     {
         delete[] indicesAfter;
         indicesAfter = nullptr;
     }
+    if (indicesAfter2 != nullptr)
+    {
+        delete[] indicesAfter2;
+        indicesAfter2 = nullptr;
+    }
 
     indicesAfter = new unsigned int[indicesCount];
-
+    indicesAfter2 = new unsigned int[indicesCount2];
+    int num = 0;
     for (int i = 0; i < voxels.size(); i++)
     {
         for (int j = 0; j < voxels[i].indices.size(); j++)
         {
             indicesAfter[i * AMOUNT_OF_INDICES + j] = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
+            num = voxels[i].indices[j] + i * AMOUNT_OF_INDICES;
         }
         voxels[i].index = i;
     }
+
+    // set the indices up for the images
+    for (int i = 0; i < images.size(); i++)
+    {
+        for (int j = 0; j < images[i].indices.size(); j++)
+        {
+            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = (images[i].indices[j] + i * AMOUNT_OF_INDICES2) + (num + 1);
+        }
+    }
+
+    std::cout << std::to_string(num) << std::endl;
 
     std::vector<float> scales;
 
@@ -724,7 +748,13 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         delete[] positions;
         positions = nullptr;
     }
+    if (positionsUI != nullptr)
+    {
+        delete[] positionsUI;
+        positionsUI = nullptr;
+    }
     positions = new float[(voxels.size() * STRIDE * AMOUNT_OF_INDICES)];
+    positionsUI = new float[(images.size() * STRIDE * AMOUNT_OF_INDICES2)];
 
     for (int i = 0; i < voxels.size(); i++)
     {
@@ -943,14 +973,49 @@ void Refresh(int &indicesCount, std::vector<Cube> &voxels, unsigned int AMOUNT_O
         }
     }
 
-    /*ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
-                      (images.size() * 6U * AMOUNT_OF_INDICES2));*/
+    // set the initial cornerPositions vector up for the images
+    for (int i = 0; i < images.size(); i++)
+    {
+        for (int j = 0; j < images[i].cornerPositions.size(); j++)
+        {
+            positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].cornerPositions[j];
+            if (j % STRIDE == 0) // x
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.x;
+            }
+            else if (j % STRIDE == 1) // y
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.y;
+            }
+            else if (j % STRIDE == 2) // z
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] += images[i].position.z;
+            }
+            else if (j % STRIDE == 5) // textureID
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].textureIndex;
+            }
+            else if (j % STRIDE == 9) // invisible
+            {
+                positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].invisible;
+            }
+        }
+    }
+
+    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * STRIDE * AMOUNT_OF_INDICES2));
+
+    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
+                      (images.size() * AMOUNT_OF_INDICES));
+
+    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
+    indicesCount += indicesCount2;
 
     va.Unbind();
     vb.Unbind();
     ib.Unbind();
 
-    vb.UpdateBuffer(positions, (voxels.size() * FULL_STRIDE));
+    vb.UpdateBuffer(positions, fullSize);
     va.AddBuffer(vb, layout);
     ib.UpdateBuffer(indicesAfter, indicesCount);
 
@@ -1061,51 +1126,79 @@ void SetRotsRadians(glm::vec3 &rots, glm::vec3 &rotsRadians, Cube *&cubeLookingA
     std::cout << rotsRadians.x << ", " << rotsRadians.y << ", " << rotsRadians.z << std::endl << std::endl;
 }
 
-#pragma endregion
-
-Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
-const unsigned int STRIDE = 10;
-int cooldownForBreak = 0;
-bool pinned = false;
-double lastFrameTime = 0.0;
-glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
-int health = 40;
-int maxHealth = 40;
-int healthCooldown = 0;
-int energyCooldown = 0;
-int energy = 10;
-int maxEnergy = 10;
-bool recharging = false;
-bool needsRecharging = false;
-int energyRechargeCooldown = 0;
-int numOfFeetOnGround = 0;
-bool levelSelect = false;
-std::string levelText = "Unchosen";
-bool amountOfLevels = 10;
-
-// clang-format off
-std::vector<const char*> descriptions =
+bool HasInInventory(std::string whatToLookFor)
 {
-    "Select a level to see information about it",
-    "The starting point - Currently a work in progress!",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
-    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    // Find the iterator pointing to "Red Key" (if it exists)
+    auto it = std::find(inventory.begin(), inventory.end(), whatToLookFor);
 
+    // Check if the iterator reached the end (not found)
+    return it != inventory.end();
+}
 
-};
-// clang-format on
+GLuint GetHeartImage(int health, std::vector<int> &heartImages)
+{
+    if (health <= 0)
+        return heartImages[0];
+    int index = (health % 4);
+    return heartImages[index];
+}
 
-const bool PRINTLOG = true;      // for debugging start of program
-const bool PRINTLOOPLOG = false; // for debugging loop  in program
+GLuint GetLevelImage(int level, std::vector<int> &levelImages)
+{
+    return levelImages[level];
+}
 
-bool placingObject = false;
-int objectOffset = -1;
+void Damage(int amount, int &health, int &healthCooldown, int maxHealth)
+{
+    if (healthCooldown > 0)
+        return;
+    healthCooldown = 30;
+    health -= amount;
+    if (health < 1)
+    {
+        health = maxHealth;
+        addNotification("YOU HAVE DIED", 100);
+    }
+}
+
+void Damage(int amount)
+{
+    Damage(amount, health, healthCooldown, maxHealth);
+}
+
+void Sap(int amount, int &energy, int &energyCooldown, int &maxEnergy)
+{
+    if (energyCooldown > 0)
+        return;
+    energyCooldown = 1000;
+    energy -= amount;
+    if (energy <= 0)
+    {
+        recharging = true;
+        needsRecharging = true;
+        addNotification("YOU HAVE NO MORE ENERGY", 200);
+    }
+}
+
+void Sap(int amount)
+{
+    Sap(amount, energy, energyCooldown, maxEnergy);
+}
+
+void HandleImpactSound(Cube &voxel, SoundManager &soundManager)
+{
+    if (((int)voxel.position.y == (int)voxel.positionHighest.y && voxel.playedSoundAlready == false) ||
+        ((int)voxel.position.y == (int)voxel.positionLowest.y && voxel.playedSoundAlready == false))
+    {
+        soundManager.RegisterSoundEvent("impactSound", voxel.position);
+        voxel.playedSoundAlready = true;
+    }
+    if ((int)voxel.position.y != (int)voxel.positionHighest.y && (int)voxel.position.y != (int)voxel.positionLowest.y &&
+        voxel.playedSoundAlready == true)
+    {
+        voxel.playedSoundAlready = false;
+    }
+}
 
 void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 rotation)
 {
@@ -1466,82 +1559,44 @@ void UpdateRotation(Cube *cubeLookingAt, std::vector<Cube> &voxels, glm::vec3 ro
     voxels[cubeLookingAt->index].cornerPositions[232] = points[23].z;
 }
 
+#pragma endregion
+
+Cube cubeDummy(glm::vec3(0, 0, 0), 99, 0);
+const unsigned int STRIDE = 10;
+int cooldownForBreak = 0;
+bool pinned = false;
+double lastFrameTime = 0.0;
+glm::vec3 spawnPoint = glm::vec3(0, 3, 0);
+
+int energyRechargeCooldown = 0;
+int numOfFeetOnGround = 0;
+bool levelSelect = false;
+std::string levelText = "Unchosen";
+bool amountOfLevels = 10;
+const bool PRINTLOG = true;      // for debugging start of program
+const bool PRINTLOOPLOG = false; // for debugging loop  in program
+bool placingObject = false;
+int objectOffset = -1;
 std::vector<int> heartImages = {2, 3, 4, 5, 6};
 std::vector<int> levelImages = {8, 9, 10, 11, 12, 13, 14, 15, 16, 15, 15, 15};
 
-bool HasInInventory(std::string whatToLookFor)
+// clang-format off
+std::vector<const char*> descriptions =
 {
-    // Find the iterator pointing to "Red Key" (if it exists)
-    auto it = std::find(inventory.begin(), inventory.end(), whatToLookFor);
+    "Select a level to see information about it",
+    "The starting point - Currently a work in progress!",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
+    "THIS LEVEL IS BLANK - IT HAS NOT BEEN STARTED YET",
 
-    // Check if the iterator reached the end (not found)
-    return it != inventory.end();
-}
 
-GLuint GetHeartImage(int health, std::vector<int> &heartImages)
-{
-    if (health <= 0)
-        return heartImages[0];
-    int index = (health % 4);
-    return heartImages[index];
-}
-
-GLuint GetLevelImage(int level, std::vector<int> &levelImages)
-{
-    return levelImages[level];
-}
-
-void Damage(int amount, int &health, int &healthCooldown, int maxHealth)
-{
-    if (healthCooldown > 0)
-        return;
-    healthCooldown = 30;
-    health -= amount;
-    if (health < 1)
-    {
-        health = maxHealth;
-        addNotification("YOU HAVE DIED", 100);
-    }
-}
-
-void Damage(int amount)
-{
-    Damage(amount, health, healthCooldown, maxHealth);
-}
-
-void Sap(int amount, int &energy, int &energyCooldown, int &maxEnergy)
-{
-    if (energyCooldown > 0)
-        return;
-    energyCooldown = 1000;
-    energy -= amount;
-    if (energy <= 0)
-    {
-        recharging = true;
-        needsRecharging = true;
-        addNotification("YOU HAVE NO MORE ENERGY", 200);
-    }
-}
-
-void Sap(int amount)
-{
-    Sap(amount, energy, energyCooldown, maxEnergy);
-}
-
-void HandleImpactSound(Cube &voxel, SoundManager &soundManager)
-{
-    if (((int)voxel.position.y == (int)voxel.positionHighest.y && voxel.playedSoundAlready == false) ||
-        ((int)voxel.position.y == (int)voxel.positionLowest.y && voxel.playedSoundAlready == false))
-    {
-        soundManager.RegisterSoundEvent("impactSound", voxel.position);
-        voxel.playedSoundAlready = true;
-    }
-    if ((int)voxel.position.y != (int)voxel.positionHighest.y && (int)voxel.position.y != (int)voxel.positionLowest.y &&
-        voxel.playedSoundAlready == true)
-    {
-        voxel.playedSoundAlready = false;
-    }
-}
+};
+// clang-format on
 
 int main()
 {
@@ -1584,7 +1639,7 @@ int main()
     std::vector<Object> objects;
     std::vector<Image> images;
     Image img(glm::vec3(0), glm::vec3(1));
-    img.SetCornerPositions(43, 0);
+    img.SetCornerPositions(4, 0);
     images.push_back(img);
     voxels.push_back(cubeDummy);
 
@@ -1614,6 +1669,7 @@ int main()
     unsigned int *indicesAfter = new unsigned int[indicesCount];
     unsigned int *indicesAfter2 = new unsigned int[indicesCount2];
     float *positions = new float[(voxels.size() * STRIDE * AMOUNT_OF_INDICES)];
+    float *positionsUI = new float[(images.size() * STRIDE * AMOUNT_OF_INDICES2)];
 
     Renderer renderer;
     Cube *cubeLookingAt = nullptr;
@@ -1647,6 +1703,34 @@ int main()
         }
     }
 
+    // set the indices up for the images
+    for (int i = 0; i < images.size(); i++)
+    {
+        for (int j = 0; j < images[i].indices.size(); j++)
+        {
+            indicesAfter2[i * AMOUNT_OF_INDICES2 + j] = images[i].indices[j] + i * AMOUNT_OF_INDICES2;
+        }
+    }
+
+    // set the initial cornerPositions vector up for the images
+    for (int i = 0; i < images.size(); i++)
+    {
+        for (int j = 0; j < images[i].cornerPositions.size(); j++)
+        {
+            positionsUI[i * STRIDE * AMOUNT_OF_INDICES2 + j] = images[i].cornerPositions[j];
+        }
+    }
+
+    ConcatenateArrays(positions, (voxels.size() * STRIDE * AMOUNT_OF_INDICES), positionsUI,
+                      (images.size() * STRIDE * AMOUNT_OF_INDICES2));
+
+    ConcatenateArrays(indicesAfter, (voxels.size() * AMOUNT_OF_INDICES), indicesAfter2,
+                      (images.size() * AMOUNT_OF_INDICES));
+
+    AMOUNT_OF_INDICES += AMOUNT_OF_INDICES2;
+    indicesCount += indicesCount2;
+
+#pragma region GL-OPTIONS
     if (!glfwInit())
     {
         std::cerr << "FAILED to initialize GLFW\n";
@@ -1683,6 +1767,7 @@ int main()
     unsigned int vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
+#pragma endregion GL - OPTIONS
 
 #pragma endregion GL - PRE - INIT
 
@@ -1696,7 +1781,7 @@ int main()
     Shader shader("res/shaders/Basic.shader");
 
     VertexArray va(1);
-    VertexBuffer vb(positions, sizeCubes);
+    VertexBuffer vb(positions, fullSize);
     VertexBufferLayout layout;
 
     layout.Push(GL_FLOAT, 3); // position
@@ -1706,10 +1791,7 @@ int main()
     layout.Push(GL_FLOAT, 1); // cubeLookingAt
     va.AddBuffer(vb, layout);
 
-    IndexBuffer ib(indicesAfter, 36U);
-
-    Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
-            PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2);
+    IndexBuffer ib(indicesAfter, 42U);
 
 #pragma endregion LAYOUT
 
@@ -1835,8 +1917,10 @@ int main()
 
         if (needsRefresh)
         {
+            std::cout << "yes" << std::endl;
             Refresh(indicesCount, voxels, AMOUNT_OF_INDICES, indicesAfter, positions, layout, va, vb, ib, FULL_STRIDE,
-                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2);
+                    PRINTLOOPLOG, STRIDE, AMOUNT_OF_INDICES2, indicesAfter2, images, indicesCount2, FULL_STRIDE2,
+                    positionsUI);
             needsRefresh = false;
         }
 
