@@ -2532,11 +2532,7 @@ int main()
         {
 
 #pragma region CameraInfo
-            ImGui::Begin("CAMERA", NULL,
-                         /*ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
-                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration*/
-                         NULL);
+            ImGui::Begin("CAMERA", NULL);
 
             // Title
             ImGui::Text("Camera Information - F1 TO TOGGLE");
@@ -2658,7 +2654,7 @@ int main()
 
 #pragma region SceneInfo
 
-            ImGui::Begin("SceneInfo", NULL, NULL);
+            ImGui::Begin("SceneInfo", NULL);
             ImGui::Text("Objects: %lu", voxels.size());
             ImGui::Text("Indices: %d", indicesCount);
             ImGui::Text("Triangles: %lu", voxels.size() * 12);
@@ -2727,11 +2723,7 @@ int main()
         if (cubeLookingAt != nullptr)
         {
 
-            ImGui::Begin("CubeLookingAt", NULL,
-                         /*ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground |
-                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration*/
-                         NULL);
+            ImGui::Begin("CubeLookingAt", NULL);
             ImGui::Checkbox("Pin", &pinned);
             ImGui::SameLine();
             ImGui::Text("VOXEL %d", cubeLookingAt->index);
@@ -3605,7 +3597,7 @@ int main()
         if (levelSelect)
         {
 
-            ImGui::Begin("LEVEL SELECT", &levelSelect, NULL);
+            ImGui::Begin("LEVEL SELECT", &levelSelect);
 
             ImGui::Dummy(ImVec2(5.0f, 5.0f));
 
